@@ -1,0 +1,237 @@
+*
+************************************
+*  Mass storage drivers (MB2K2)    *
+*  ------------------------------  *
+*  Devices supported :-            *
+*        0 (A) = PROMdisk          *
+*        1 (B) = F-RAMdisk         *
+*        2 (C) = RAMdisk           *
+*        3 (D) = Remote disk       *
+************************************
+*
+* SELECT      Select a physical drive and swap vectors.
+* Entry :-  a0 points to dcb.
+* Exit :-   (d0) = error code, 0 if ok.
+*
+select   movem.l d1/a0-a2,-(sp)
+         move.b  0(a0),1(a0)  For the moment, logical=physical.
+         move.b  1(a0),d0    
+         cmp.b   #6,d0     Drive in range?
+         bge     sel_err
+*
+selfp    lea.l   j_table+$f6,a1 Move new jump table entries.
+         and.l   #$ff,d0
+         move.l  #24,d1
+         mulu    d1,d0        d0 has table offset.
+         lea.l   drv_tab,a2
+         add.l   d0,a2        a2 points to vectors.
+         moveq.l #5,d0        Four 6 byte vectors to move.
+sellp    move.l  (a2)+,(a1)+
+         dbf   d0,sellp
+*
+sel_end  move.b  1(a0),olddrv
+         moveq   #0,d0
+         movem.l (sp)+,d1/a0-a2
+         rts
+sel_err  moveq   #1,d0
+         movem.l (sp)+,d1/a0-a2
+         rts
+*
+* Internal jump points.  (point to jump table entries).
+restore  jmp   j_table+$f6
+seek     jmp   j_table+$fc
+read     jmp   j_table+$102
+write    jmp   j_table+$108
+*
+* Table entries for drivers.
+* Drive 0 (PROMdisk)
+drv_tab  jmp  dummy
+         jmp  dummy
+         jmp  pdread
+         jmp  pdwrite
+*
+* Drive 1 (FRAMdisk)
+         jmp  dummy
+         jmp  dummy
+         jmp  frread
+         jmp  frwrite
+*
+* Drive 2 (RAMdisk)
+         jmp  dummy
+         jmp  dummy
+         jmp  rread
+         jmp  rwrite
+*
+* Drive 3 (remote disk)
+         jmp  dummy
+         jmp  dummy
+         jmp  dummy
+         jmp  dummy
+*
+* Drive 4 (floppy disc 0)
+         jmp  dummy
+         jmp  dummy
+         jmp  fread
+         jmp  fwrite
+*
+* Drive 5 (floppy disc 1)
+         jmp  dummy
+         jmp  dummy
+         jmp  fread
+         jmp  fwrite
+*
+********************
+* PROMdisk drivers *
+********************
+* Entry :-  a0 points to dcb.
+* Exit :-   (d0) = error code, 0 if ok.
+*
+* $FF330 PROMdisk  control reg
+* $FF331 PROMdisk  track reg
+* $FF332 PROMdisk  sector reg
+* $FF333 PROMdisk  data reg
+* $FF334 PROMdisk  mode reg
+*
+*** PROMdisk read
+pdread movem.l a0-a1,-(sp)
+*
+ move.b 3(a0),$FF331 track
+ move.b 5(a0),$FF332 sector
+ move.l 6(a0),a1     buffer address 
+*
+ move.b #$84,$FF330  PROMdisk read command (issued before data read) 
+ move.l #255,d0
+pdrlp move.b $FF333,(a1)+
+ dbf d0,pdrlp
+ *
+ moveq #0,d0 no errors
+ movem.l (sp)+,a0-a1
+ rts
+*
+*** PROMdisk write
+pdwrite movem.l a0-a1,-(sp)
+*
+ move.b 3(a0),$FF331 track
+ move.b 5(a0),$FF332 sector
+ move.l 6(a0),a1     buffer address 
+*
+ move.l #255,d0
+pdwlp move.b (a1)+,$FF333
+ dbf d0,pdwlp 
+ move.b #$A4,$FF330 PROMdisk write command (issued after data sent)
+* 
+ moveq #0,d0 no errors
+ movem.l (sp)+,a0-a1
+ rts
+* 
+********************
+* FRAMdisk drivers *
+********************
+* Entry :-  a0 points to dcb.
+* Exit :-   (d0) = error code, 0 if ok.
+*
+* $FF258 f-ramdisk control reg
+* $FF259 f-ramdisk track reg
+* $FF25A f-ramdisk sector reg
+* $FF25B f-ramdisk data reg
+* $FF25C f-ramdisk mode reg
+*
+*** FRAMdisk read
+frread movem.l a0-a1,-(sp)
+*
+ move.b 3(a0),$FF259 track
+ move.b 5(a0),$FF25A sector
+ move.b #0,$FF258    control reg write sets up xfer
+ move.l 6(a0),a1     buffer address 
+ move.l #255,d0
+*
+frrlp move.b $FF25B,(a1)+ first read triggers sector read
+ dbf d0,frrlp
+ *
+ moveq #0,d0 no errors
+ movem.l (sp)+,a0-a1
+ rts
+*
+*** FRAMdisk write
+frwrite movem.l a0-a1,-(sp)
+*
+ move.b 3(a0),$FF259 track
+ move.b 5(a0),$FF25A sector
+ move.b #0,$FF258    control reg write sets up xfer
+ move.l 6(a0),a1     buffer address 
+ move.l #255,d0
+*
+frwlp move.b (a1)+,$FF25B
+ dbf d0,frwlp last write trigggers sector write
+*
+ moveq #0,d0 no errors
+ movem.l (sp)+,a0-a1
+ rts
+*
+**********************************
+* Floppy disk drivers (WD1770/2) *
+**********************************
+* Entry :-  a0 points to dcb.
+* Exit :-   (d0) = error code, 0 if ok.
+*
+* Wait until current command is finished.
+fwait    rts
+* Send command in (d0) to fdc.
+fcmd     rts
+*
+* Restore to track 00.
+frestore rts
+* Seek to track pointed to by (d2).
+fseek    rts
+*
+* Read a logical sector from track/sector.
+fread    rts
+*
+* Write a logical sector to track/sector.
+fwrite   rts
+*
+* Process floppy error code.
+derror   rts
+*
+*******************
+* RAMdisk drivers *
+*******************
+* Entry :-  a0 points to dcb.
+* Exit :-   (d0) = error code, 0 if ok.
+*
+* set (a0) to the ramdisk 'sector'
+rdpnt movem.l d0-d1,-(sp)
+ moveq #0,d0
+ move.b 3(a0),d0
+ asl.l #4,d0 times 16
+ moveq.l #0,d1
+ move.b 5(a0),d1
+ add.l d1,d0
+ asl.l #7,d0 byte boundary
+ add.l #$30000,d0 ramdisk offset
+ movea.l d0,a0
+ movem.l (sp)+,d0-d1
+ rts
+*
+* RAMdisk read.
+rread movem.l a0-a1,-(sp)
+ move.l 6(a0),a1
+ bsr.s rdpnt
+ move.l #31,d0
+rrlp move.l (a0)+,(a1)+
+ dbf d0,rrlp
+ moveq #0,d0
+ movem.l (sp)+,a0-a1
+ rts
+*
+* RAMdisk write.
+rwrite movem.l a0-a1,-(sp)
+ move.l 6(a0),a1
+ bsr.s rdpnt
+ move.l #31,d0
+rwlp move.l (a1)+,(a0)+
+ dbf d0,rwlp
+ moveq #0,d0
+ movem.l (sp)+,a0-a1
+ rts
+*

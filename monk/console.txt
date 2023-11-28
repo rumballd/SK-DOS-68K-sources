@@ -1,0 +1,423 @@
+*********************
+* Console routines  *
+*********************
+*
+* Character status routines.
+* Entry:- No parameters.
+* Exit :- No registers altered, (z)=0 if character queued.
+status   move.l  d1,-(sp)
+         clr.l   d1
+         move.b  iport,d1
+         jsr     statab(pc,d1)
+         beq.s   stt1
+         move.l  (sp)+,d1
+         move.w  #$0,ccr
+         rts
+stt1     move.l  (sp)+,d1
+         move.w  #4,ccr
+         rts
+statab   bra     stakey
+         bra     stater0
+         bra     stater1
+         bra     dummy
+*
+* Character input with no echo.
+* Entry :- No parameters.
+* Exit :- d0 = character.
+inch1    bsr     status
+         beq.s   inch1
+         move.l  d1,-(sp)
+         clr.l   d1
+         move.b  iport,d1
+         jsr     intab(pc,d1)
+         move.l  (sp)+,d1
+         rts
+intab    bra     inkey
+         bra     inter0
+         bra     inter1
+         bra     dummy
+*
+* Character input with echo.
+* Entry :- No parameters.
+* Exit :- d0 = character
+inch     bsr.s   inch1
+*
+* Character output routine.
+* Entry :- d0 = character.
+* Exit :-  No registers altered.
+outch    move.l  d1,-(sp)
+         clr.l   d1
+         move.b  oport,d1
+         jsr     outtab(pc,d1)
+         move.l  (sp)+,d1
+         rts
+outtab   bra     outvdu
+         bra     outter0
+         bra     outter1
+         bra     dummy
+*
+** Keyboard status routine.  
+stakey   btst.b #7,$FF11B   char ready on bit 7
+         rts
+*
+* Serial status routine.
+stater0  btst.b  #0,acia+stat0
+         rts
+*
+stater1  btst.b  #0,acia+stat1
+         rts
+****************************
+* Keyboard input routine.
+inkey    move.b $FF113,d0
+         andi.l  #$7f,d0
+         rts
+*
+* Serial input routine.
+inter0   move.b  acia+data0,d0
+         andi.l  #$7f,d0
+         rts
+*
+inter1   move.b  acia+data1,d0
+         andi.l  #$7f,d0
+         rts
+****************************
+* Serial output routine.
+*outter0  btst.b  #2,acia+stat0
+*         beq.s   outter0
+outter0 andi.b  #$7f,d0
+         move.b  d0,acia+data0
+         rts
+*
+*outter1  btst.b  #2,acia+stat1
+*         beq.s   outter0
+outter1  andi.b  #$7f,d0
+         move.b  d0,acia+data1
+         rts
+*
+outpri   rts
+*
+**********************************
+* Output char to graphics screen *
+**********************************
+outvdu   movem.l d0-d1/a0-a1,-(sp)
+*
+*        bclr.b  #7,$ffe92    switch off cursor
+*
+         and.l   #$7f,d0      strip any parity
+*
+         btst.b  #7,vduflags  escape sequence?
+         bne     esc_proc
+*
+         cmp.b   #$20,d0      control character?
+         blo     c_code
+*
+* position pointer to character pattern
+         sub.b   #$20,d0      remove bias
+         mulu    #11,d0       bytes per character * char
+         lea.l   chrtab,a0    base of chracter patterns
+         lea.l   (a0,d0.w),a0 base of chracter
+*
+* calculate current screen position
+         move.l  #960,d1  bytes per row
+         mulu    row,d1       times current row
+         add.w   col,d1
+         moveq   #0,d0
+         move.w  offset,d0
+         add.l   d0,d1        add in vertical offset
+         cmp.l   #$4b00,d1    off the screen?
+         blt.s   crok
+         sub.l   #$4b00,d1    is so, adjust
+crok     add.l   #$3b500,d1   add in screen base address
+         move.l  d1,a1
+*
+* move character pattern to ram
+         moveq   #80,d0       line offset
+*
+         btst.b  #5,vduflags  attributes on?
+         bne.s   mvc1
+* move the data (non inverted)
+         move.b  (a0)+,(a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         bra.s   ov2
+*
+* move the data  (inverted version)
+mvc1     move.b  (a0)+,(a1)
+         not.b   (a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         not.b   (a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         not.b   (a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         not.b   (a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         not.b   (a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         not.b   (a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         not.b   (a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         not.b   (a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         not.b   (a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         not.b   (a1)
+         add.l   d0,a1
+         move.b  (a0)+,(a1)
+         not.b   (a1)
+* increment col
+ov2      cmp.w   #79,col
+         beq.s   ov1
+         addq.w  #1,col
+*
+ov1      movem.l (sp)+,d0-d1/a0-a1
+         rts
+* copy of row/col to cursor routine
+rctocr   move.l  #960,d1  bytes per row
+         mulu    row,d1       times current row
+         add.w   col,d1
+         moveq   #0,d0
+         move.w  offset,d0
+         add.l   d0,d1        add in vertical offset
+         cmp.l   #$4b00,d1    off the screen?
+         blt.s   ccrok
+         sub.l   #$4b00,d1    is so, adjust
+ccrok    add.l   #$3b500,d1   add in screen base address
+         move.l  d1,a1
+         rts
+*
+****************************
+* control codes jump table *
+****************************
+c_code   asl.l   #1,d0        two byte offsets
+         move.w  table(pc,d0.w),d0 point to correct routine
+         jsr     table(pc,d0)      jump to it!
+         bra     ov1
+*
+table    dc.w    nu-table,nu-table,nu-table,nu-table
+         dc.w    nu-table,nu-table,nu-table,bl-table
+         dc.w    bs-table,ht-table,lf-table,vt-table
+         dc.w    ff-table,cr-table,mv-table,ho-table
+         dc.w    il-table,dl-table,el-table,ep-table
+         dc.w    at-table,ao-table,nu-table,nu-table
+         dc.w    nu-table,nu-table,nu-table,es-table
+         dc.w    nu-table,nu-table,nu-table,nu-table
+*
+* 'escape' sequence processing
+esc_proc sub.b   #$20,d0      remove ascii bias
+         btst.b  #6,vduflags  1st coord?
+         beq     esc1
+         move.w  d0,row
+         bclr.b  #6,vduflags
+         bra     ov1
+*
+esc1     move.w  d0,col       2nd coord
+         bclr.b  #7,vduflags  clear escape flag
+         bra     ov1
+*
+nu       rts                  null
+*
+bl       bra     beep         bell
+*
+bs       cmp.w   #0,col       back space
+         beq.s   bse
+         subq.w  #1,col
+bse      rts
+*
+ht       cmp.w   #79,col      horizontal tab
+         beq.s   hte
+         addq.w  #1,col
+hte      rts
+*
+lf       cmp.w   #19,row      line feed
+         beq     scr_up       if on bottom row, scroll
+         addq.w  #1,row
+         rts
+*
+vt       cmp.w   #0,row       vertical tab
+         beq     scr_dwn      if on top row, scroll
+         subq.w  #1,row
+vte      rts
+*
+ff       bra     cleart       form feed
+*
+ho       clr.w   row          home
+*
+cr       clr.w   col          cr return
+         rts
+*
+mv       or.b    #$c0,vduflags set escape flags for cursor move
+         rts
+*
+il       rts                  no insert line
+*
+dl       rts                  no delete line
+*
+el movem.l d2-d3,-(sp)
+ bsr rctocr starting point
+ moveq #80,d0 deol
+ sub.w col,d0
+ subq #1,d0
+ move.l a1,a0
+ moveq #0,d2 clear value
+ move.l d0,d3 length
+ moveq #11,d1 lines to clear
+deol1 move.l d3,d0
+ move.l a0,a1
+ lea.l 80(a0),a0
+deol2 move.b d2,(a1)+
+ dbf d0,deol2
+ dbf d1,deol1
+ movem.l (sp)+,d2-d3
+ rts
+*
+ep move.w row,-(sp)
+ move.w col,-(sp)
+ bsr el
+ cmp.w #19,row last line?
+ beq.s deope
+ addq.w #1,row start from next row
+ clr.w col clear col
+ moveq #20,d0
+ sub.w row,d0
+ subq #1,d0 rows to clr
+deop_1 move.l d0,-(sp)
+ bsr el
+ move.l (sp)+,d0
+ addq.w #1,row
+ dbf d0,deop_1
+deope move.w (sp)+,col
+ move.w (sp)+,row
+ rts
+*
+es       rts
+*
+at bset #5,vduflags
+ rts
+*
+ao bclr #5,vduflags
+ rts
+*
+scr_up add.w #960,offset
+ cmp.w #$4b00,offset
+ blt.s scrok
+ move.w #0,offset
+*
+scrok move.l #$ffe2c,a0
+ move.w offset,d0
+ move.b d0,3(a0)
+ lsr.w #8,d0
+ move.b d0,2(a0)
+*
+scr1 clr.w col
+ bsr rctocr
+ move.w #239,d0
+ clr.l d1
+*
+scrloop move.l d1,(a1)+
+ dbf d0,scrloop
+ rts
+*
+*
+scr_dwn cmp.w #0,offset
+ bne.s scrdzz1
+ move.w #$4b00,offset
+*
+scrdzz1 sub.w #960,offset
+ cmp.w #0,offset
+ bge.s dscrok
+ move.w #$4b00,offset
+*
+dscrok move.l #$ffe2c,a0
+ move.w offset,d0
+ move.b d0,3(a0)
+ lsr.w #8,d0
+ move.b d0,2(a0)
+*
+dscr1 clr.w col
+ bsr rctocr
+ move.w #239,d0
+ clr.l d1
+*
+dscrloop move.l d1,(a1)+
+ dbf d0,dscrloop
+ rts
+*
+************************************
+*    Clear screen and init vars    *
+************************************
+cleart    moveq  #0,d0        fill screen with $0
+          lea.l  $3b500,a0
+          move.l #4799,d1
+ctl1      move.l d0,(a0)+
+          dbf    d1,ctl1
+*
+          move.w d0,row       home cursor
+          move.w d0,col
+*
+          move.b d0,vduflags  clear flags
+*
+          move.l #$ffe2c,a0   clear vert offset
+          move.b d0,3(a0)
+          move.b d0,2(a0)
+          move.w  d0,offset
+*
+* disable all t/o's.
+ moveq #0,d0
+* move.b d0,$ffe92
+* move.b d0,$ffe9a
+* move.b d0,$ffe9e
+* move.b d0,$ffe96
+* move.b d0,$ffea6
+* move.b d0,$ffeaa
+* move.b d0,$ffeae
+* set up true object 4 as cursor.
+*          move.b #$07,$ffe0c  set object table address
+*          move.b #$fc,$ffe0d
+*          move.b #$00,$ffeb4  name t.o. four.
+*
+*          moveq  #5,d0        move cursor pattern to video ram
+*          lea.l  cursor,a0
+*          lea.l  $7fc00,a1
+*cltlpp    move.l (a0)+,(a1)+
+*          dbf    d0,cltlpp
+*
+          move.w #$1,flash    init flash counter
+*
+          rts
+*
+cursor    dc.l   %11110000000011000000000000000000
+          dc.l   %11110000001111110000000000000000
+          dc.l   %11110000111111111100000000000000
+          dc.l   %11110011111111111111000000000000
+          dc.l   %11111111111111111111110000000000
+          dc.l   %00000000000000000000000000000000
+*
+*

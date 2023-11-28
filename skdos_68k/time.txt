@@ -1,0 +1,308 @@
+          NAM TIME
+
+* TIME ROUTINE FOR MB2K2
+
+          LIB SKEQUATE.txt
+
+START     BRA.S START1
+
+VER       DC.W $0100              VERSION
+
+* DISPLAY CURRENT CLOCK DATE AND TIME
+
+START1    move.b   #6,$F0003
+          clr.l d1
+          MOVE.B   $F0001,D1       DAY OF WEEK
+          CMP.B #8,D1              CHECK IF VALID >>A<<
+          BCS.S DOWOK              OK IF <8 >>A<<
+          CLR.B D1                 ELSE SET TO 0 >>A<<
+DOWOK     MULU #10,D1              MULT BY 10
+          LEA DAYTAB(PC),A4        POINT TO DAY TABLE
+          ADD.L D1,A4              POINT TO THE DAY
+          DC PSTRNG                PRINT IT
+          MOVE.B #$20,D4
+          DC PUTCH                 SPACE
+*
+          move.b   #8,$F0003
+         MOVE.B   $F0001,D4
+          BSR.L PRINT              PRINT MONTH
+          MOVE.B #$2D,D4
+          DC PUTCH                 PRINT -
+*
+          move.b   #7,$F0003
+         MOVE.B   $F0001,D4
+          BSR.L PRINT              PRINT DAY
+          MOVE.B #$2D,D4
+          DC PUTCH                 PRINT -
+*
+          move.b   #9,$F0003
+         MOVE.B   $F0001,D4
+          BSR.L PRINT              PRINT YEAR
+          MOVE.B #$2C,D4
+          DC PUTCH                 COMMA
+          MOVE.B #$20,D4
+          DC PUTCH                 SPACE
+*
+          move.b   #4,$F0003
+          MOVE.B   $F0001,D4
+          BSR.L PRINTH             PRINT HOUR
+          MOVE.B #$3A,D4
+          DC PUTCH                 PRINT :
+*
+          move.b   #2,$F0003
+          MOVE.B   $F0001,D4
+          BSR.L PRINT              PRINT MINUTES
+          MOVE.B #$3A,D4
+          DC PUTCH                 SPACE
+*
+          move.b   #4,$F0003
+          MOVE.B   $F0001,D4         GET HOURS AGAIN
+          CMP.B #$12,D4            >>A<<
+          BCC.S ISPM
+          MOVE.B #$61,D4           READY TO PRINT AM
+          BRA.S PRAMPM             THEN PRINT IT
+ISPM      MOVE.B #$70,D4
+PRAMPM    DC PUTCH                 PRINT A OR P
+          MOVE.B #$6D,D4
+          DC PUTCH                 PRINT M
+          DC PCRLF                 SKIP SPACE
+
+
+* NOW CHECK WHETHER NEW TIME IS TO BE INPUT
+
+          MOVE.L LPOINT(A6),A0
+          MOVE.B (A0)+,D0          GET NEXT CHARACTER ON INPUT LINE
+          CMP.B #$3F,D0
+          BEQ.L HELP               HELP IF ?
+          AND.B #$DF,D0            CVT TO UPPER CASE
+          CMP.B #$53,D0            SET?
+          BEQ.S INPTIM             YES, INPUT NEW TIME
+QUIT      DC WARMST                ELSE QUIT
+
+* NOW PROMPT FOR AND INPUT THE NEW TIME
+
+INPTIM    LEA INPMSG(PC),A4
+          DC PSTRNG                PRINT INITIAL MESSAGE
+          DC PCRLF
+          LEA DOWMSG(PC),A4
+          DC PSTRNG                ASK FOR DOW
+          BSR.L INPUT              GET THE INPUT
+          AND.B #$07,D5
+          LEA DOW(PC),A5
+          MOVE.B D5,(A5)
+          LEA MONMSG(PC),A4
+          DC PSTRNG                ASK FOR MONTH
+          BSR.L INPUT              GET THE INPUT
+          AND.B #$1F,D5
+          LEA TMONTH(PC),A5
+          MOVE.B D5,(A5)
+          LEA DAYMSG(PC),A4
+          DC PSTRNG                ASK FOR DAY
+          BSR.L INPUT              GET THE INPUT
+          AND.B #$3F,D5
+          LEA TDAY(PC),A5
+          MOVE.B D5,(A5)
+          LEA YEAMSG(PC),A4
+          DC PSTRNG                ASK FOR YEAR
+          BSR.L INPUT              GET THE INPUT
+          LEA TYEAR(PC),A5
+          MOVE.B D5,(A5)
+          LEA HOUMSG(PC),A4
+          DC PSTRNG                ASK FOR HOUR
+          BSR.L INPUT              GET THE INPUT
+          CMP.B #12,D5             CHECK THE HOURS
+          BNE.S STOHRS             GO STORE IF NOT 12 HOURS
+          CLR.B D5                 ELSE CHANGE 12 TO 00
+STOHRS    LEA HOUR(PC),A5
+          AND.B #$3F,D5
+          MOVE.B D5,(A5)
+          LEA MINMSG(PC),A4
+          DC PSTRNG                ASK FOR MINUTE
+          BSR.L INPUT              GET THE INPUT
+          AND.B #$7F,D5
+          LEA MINUTE(PC),A5
+          MOVE.B D5,(A5)
+          LEA SECMSG(PC),A4
+          DC PSTRNG                ASK FOR SECONDS
+          BSR.L INPUT              GET THE INPUT
+          AND.B #$7F,D5
+          LEA SECOND(PC),A5
+          MOVE.B D5,(A5)
+ASKAMP    LEA AMPMSG(PC),A4
+          DC PSTRNG                ASK FOR AM OR PM
+          DC GETCH
+          AND.B #$DF,D5            CVT TO UPPER CASE
+          CMP.B #$41,D5            A?
+          BEQ.S CHEKIT             LEAVE IF AM
+          CMP.B #$50,D5            P?
+          BNE.S ASKAMP             REPEAT IF NOT AM OR PM
+          MOVE.B HOUR(PC),D0
+          ADD.B #12,D0             CVT TO PM
+          AND.B #$3F,D5
+          LEA HOUR(PC),A5
+          MOVE.B D0,(A5)
+
+* NOW CHECK IF IT'S OK
+
+CHEKIT    LEA OKMSG(PC),A4
+          DC PSTRNG                ASK FOR Y OR N
+          DC GETCH
+          AND.B #$DF,D5            CVT TO UPPER CASE
+          CMP.B #$4E,D5            N?
+          BEQ.L QUIT               NO, QUIT
+          CMP.B #$59,D5            Y?
+          BNE.S CHEKIT             RETRY IF NOT Y OR N
+
+* NOW TRANSFER DATA INTO CLOCK CHIP. FIRST, KICK-START IT
+*
+           MOVE.B SECOND(PC),D0
+           BSR.L BINBCD             SECOND TO BCD
+           move.b #0,$F0003 secs
+           MOVE.B D0,$F0001 
+*
+          MOVE.B MINUTE(PC),D0
+           BSR.L BINBCD             MINUTE TO BCD
+           move.b #2,$F0003 mins
+           MOVE.B D0,$F0001
+*
+           MOVE.B HOUR(PC),D0
+           BSR.L BINBCD             HOUR TO BCD
+           move.b #4,$F0003 hour
+           MOVE.B D0,$F0001
+
+           MOVE.B DOW(PC),D0
+           BSR.L BINBCD             DAY OF WEEK TO BCD
+           move.b #6,$F0003 day of week
+           MOVE.B D0,$F0001
+*
+           MOVE.B TDAY(PC),D0
+           BSR.L BINBCD             DAY TO BCD
+           move.b #7,$F0003 day in month
+           MOVE.B D0,$F0001
+*
+           MOVE.B TMONTH(PC),D0
+           BSR.L BINBCD             MONTH TO BCD
+           move.b #8,$F0003 month
+           MOVE.B D0,$F0001
+*
+           MOVE.B TYEAR(PC),D0
+           BSR.L BINBCD             YEAR TO BCD
+           move.b #9,$F0003 year
+           MOVE.B D0,$F0001
+
+          DC WARMST                AND RETURN TO DOS
+
+* PRINT SUBROUTINE - PRINT BCD NUMBER IN D4
+* TWO ENTRIES - ONE FOR HOURS TO SUBTRACT 12 IF PM
+
+PRINTH    BSR.L BCDBIN             CVT FROM BCD TO BIN
+          BNE.S NOT0HR             IF NOT 12 MIDNOGHT
+          ADD.B #12,D4             CHANGE 00 HOURS TO 12
+          BRA.S PRINT1
+NOT0HR    CMP.B #12,D4             1 TO 12 HOURS?
+          BLS.S PRINT1             YES, USE AS IS
+          SUB.B #12,D4             IF >12 SUBTRACT 12 HRS
+          BRA.S PRINT1
+PRINT     BSR.L BCDBIN             CVT TO BINARY
+PRINT1    DIVU #10,D4              UNITS | TENS DIGITS
+          ADD.B #$30,D4            CVT TENS TO ASCII
+          DC PUTCH                 PRINT IT
+          SWAP D4                  UNITS
+          ADD.B #$30,D4            CVT UNITS TO ASCII
+          DC PUTCH                 PRINT IT
+          RTS
+
+* CONVERT D4.B FROM BCD TO BINARY D4.L - PRESERVE ALL
+
+BCDBIN    AND.L #$FF,D4            CVT .B TO .L
+          MOVE.L D4,-(A7)          PUT ON STACK
+          LSR.B #4,D4              TENS DIGIT RIGHT
+          AND.W #$F,D4             ZERO REST OF WORD
+          MULU #10,D4              TIMES TEN
+          SWAP D4                  SAVE IN LEFT HALF
+          MOVE.B 3(A7),D4          GET ORIGINAL BCD NUMBER
+          AND.B #$F,D4             UNITS DIGIT
+          MOVE.B D4,3(A7)          PUT ON STACK
+          SWAP D4                  TENS DIGIT AGAIN
+          ADD.B 3(A7),D4           ADD BACK UNITS
+          MOVE.B D4,3(A7)
+          MOVE.L (A7)+,D4          FINALLY PULL AGAIN
+          RTS                      AND RETURN
+
+* INPUT SUBROUTINE - INPUT 2-DIGIT NUMBER AS BINARY
+
+INPUT     DC GETCH                 GET TENS DIGIT
+          SUB.B #$30,D5            CVT FROM ASCII
+          CMP.B #9,D5              CHECK IT
+          BHI.S INPUT
+          CLR.L D1
+          MOVE.B D5,D1             SAVE TENS IN D1
+          MULU #10,D1
+          DC GETCH                 GET SECOND
+          SUB.B #$30,D5            CVT FROM ASCII
+          CMP.B #9,D5              CHECK IT
+          BHI.S INPUT
+          ADD.B D1,D5              COMBINE
+          RTS                      AND RETURN
+
+* CONVERT D0.B FROM BINARY TO BCD D0.L - PRESERVE ALL
+
+BINBCD    AND.L #$FF,D0
+          DIVU #10,D0              UNITS | TENS DIGITS
+          LSL.B #4,D0              SHIFT TENS NIBBLE LEFT
+          MOVE.B D0,D1             SAVE IN D1
+          SWAP D0                  UNITS
+          ADD.B D1,D0              COMBINE
+          RTS
+
+* PRINT HELP MESSAGE
+
+HELP      LEA HLPMSG(PC),A4
+          DC PSTRNG
+          DC WARMST
+
+* TEST STRINGS
+
+HLPMSG    DC.B 'TIME is used to display or set the current date and time'
+          DC.B $0D,$0A
+          DC.B 'in the clock/calendar IC. The syntax is'
+          DC.B $0D,$0A
+          DC.B '   TIME'
+          DC.B $0D,$0A
+          DC.B 'to display the current date and time, or'
+          DC.B $0D,$0A
+          DC.B '   TIME S'
+          DC.B $0D,$0A
+          DC.B 'to set a new date and time. If setting the clock, make sure'
+          DC.B $0D,$0A
+          DC.B 'to answer all questions with two-digit numbers.',4
+INPMSG    DC.B 'Input the following data as 2-digit numbers:',4
+DOWMSG    DC.B 'Enter day of week as 01-07 (01=Sunday): ',4
+MONMSG    DC.B 'Enter month as 01-12: ',4
+DAYMSG    DC.B 'Enter day as 01-31: ',4
+YEAMSG    DC.B 'Enter year as 85-99: ',4
+HOUMSG    DC.B 'Enter hour as 01-12: ',4
+MINMSG    DC.B 'Enter minute as 00-59: ',4
+SECMSG    DC.B 'Enter second as 00-59: ',4
+AMPMSG    DC.B 'Enter A for AM or P for PM ',4
+OKMSG     DC.B 'Enter Y when ready to start clock, or N to cancel: ',4
+DAYTAB    DC.B '*NOT SET*',4 >>A<<
+          DC.B 'Sunday',4,0,0,0
+          DC.B 'Monday',4,0,0,0
+          DC.B 'Tuesday',4,0,0
+          DC.B 'Wednesday',4
+          DC.B 'Thursday',4,0
+          DC.B 'Friday',4,0,0,0
+          DC.B 'Saturday',4,0
+
+* DATA AREA
+DOW       DS.B 1
+TMONTH    DS.B 1
+TDAY      DS.B 1
+TYEAR     DS.B 1
+HOUR      DS.B 1
+MINUTE    DS.B 1
+SECOND    DS.B 1
+
+          END START
+

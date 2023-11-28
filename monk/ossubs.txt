@@ -1,0 +1,384 @@
+***********************************************
+* OS interface routines (BIOS) for SK*DOS 68K *
+***********************************************
+*
+* EXTERNAL REFERENCES - MOST OF THESE ARE REFERENCED TO 'DOSORG',
+* WHICH IS THE BEGINNING POINT OF SK*DOS.
+* FOR EXAMPLE, A TYPICAL SK*DOS BEGINS AT $1000, SO DOSORG IS
+* SET TO $1000 BELOW. MAKE SURE TO MODIFY DOSORG AS NECESSARY.
+
+****** CAUTION - THE NEXT ADDRESSES MAY CHANGE!!!! ****
+LVL5IA   EQU      $2F4A               LEVEL 5 VECTOR
+PUTCD5   EQU      $4AB0               PUTCHR INTERNAL
+*******************************************************
+
+DOSORG   EQU      $1000               BEGINNING LOCATION OF SK*DOS
+WINTAB   EQU      DOSORG+$200         WINCHESTER DATA TABLE
+VRBLES   EQU      DOSORG+$400         BEGINNING OF SK*DOS VARIABLE AREA
+GETDAT   EQU      DOSORG+$00C         VECTOR TO GET THE DATE
+INTIME   EQU      DOSORG+$012         VECTOR TO GET THE TIME
+CDAY     EQU      VRBLES+751          Current date - day
+CMONTH   EQU      VRBLES+750          Current date - month
+CYEAR    EQU      VRBLES+752          Current date - year
+BREAK    EQU      VRBLES+762          BREAK ADDRESS
+DICOLD   EQU      DOSORG+$100         DISK COLD-START INIT
+DIWARM   EQU      DOSORG+$106         DISK WARM-START INIT
+DIREAD   EQU      DOSORG+$10C         DISK READ
+DIWRIT   EQU      DOSORG+$112         DISK WRITE
+DICHEK   EQU      DOSORG+$118         DISK READY CHECK
+DIMOFF   EQU      DOSORG+$11E         TURN OFF DISK MOTOR
+DIREST   EQU      DOSORG+$124         PRIMARY DISK RESTORE
+DISEEK   EQU      DOSORG+$12A         PRIMARY DISK SEEK
+ERRTYP   EQU      VRBLES+782          ERROR TYPE
+INDOS    EQU      VRBLES+794          0=OUTSIDE DOS, ELSE IN DOS
+INECHO   EQU      VRBLES+800          INPUT ECHO FLAG
+DEVOUT   EQU      VRBLES+3275         OUTPUT DEVICE NUMBER
+STPRAT   EQU      DOSORG+$130         STEPRATES FOR THREE DRIVES
+VERFLG   EQU      DOSORG+$13A         VERIFY FLAG
+DRUSED   EQU      DOSORG+$13C         DRIVE USED TABLE
+NRETRY   EQU      DOSORG+$150         FLOPPY RETRY COUNTER
+FOTHER   EQU      DOSORG+$151         =0 IF SK*DOS, ELSE # SECT/SIDE
+NUMBHD   EQU      DOSORG+$152         NUMBER OF HARD DRIVES
+SINITV   EQU      DOSORG+$180         SERIAL PORT INIT
+STATVE   EQU      DOSORG+$186         SERIAL PORT STATUS CHECK
+STATV1   EQU      DOSORG+$1D4         INPUT STATUS CHECK W/O TYPEAHEAD
+OUTCHV   EQU      DOSORG+$18C         OUTPUT TO PORT
+OFFINI   EQU      DOSORG+$018         INITIAL OFFSET VALUE
+INCHV    EQU      DOSORG+$192         INPUT FROM KBD WITH ECHO
+KINPUV   EQU      DOSORG+$198         INPUT W/O ECHO
+KINPV1   EQU      DOSORG+$1DA         INPUT W/O ECHO  W/O TYPEAHEAD
+ICNTRL   EQU      DOSORG+$1A4         INPUT CONTROL
+MONITV   EQU      DOSORG+$1AA         RETURN TO MONITOR
+RESETV   EQU      DOSORG+$1B0         RESET MONITOR/SYSTEM
+TIMINI   EQU      DOSORG+$1B6         TIMER INITIALIZE
+TIMOFF   EQU      DOSORG+$1BC         TIMER OFF
+TIMON    EQU      DOSORG+$1C2         TIMER ON
+OSTATV   EQU      DOSORG+$1C8         OUTPUT STATUS VECTOR
+GETDTV   EQU      DOSORG+$1CE         GET DATE AND TIME VECTOR
+KILLV1   EQU      DOSORG+$1E0         FLUSH TYPEAHEAD BUFFER
+PSTRNV   EQU      DOSORG+$B6          PRINT STRING VECTOR
+ASKDAV   EQU      DOSORG+$B0          ASK FOR DATE VECTOR
+
+* SK*DOS FCB EQUATES
+
+FCBPHY   EQU      72        Physical drive number
+FCBDAT   EQU      96        Beginning of data buffer (256 bytes)
+FCBCSE   EQU      35        Current sector in buffer
+FCBCTR   EQU      34        Current track in buffer
+FCBDRV   EQU      3         Logical Drive number
+FCBERR   EQU      1         Error code
+*
+MEMINI    equ $101C         end of availible system RAM
+***************************************
+**** --- PART 1 - DISK DRIVERS --- ****
+***************************************
+
+* CAUTION - THESE DRIVERS MUST PRESERVE ALL REGISTERS!!!
+
+*********************************************
+* READ ENTRY POINT FOR PRIMARY DISK DRIVERS
+*********************************************
+
+* THIS IS ESSENTIALLY SREAD OPERATION
+
+* ENTER: A4 POINTS TO FCB WHICH NEEDS DATA.
+*        FCBDRV(A4) HAS DRIVE NUMBER
+*        FCBCTR(A4) HAS TRACK NUMBER
+*        FCBCSE(A4) HAS SECTOR NUMBER
+
+* EXIT:  ZERO IF NO ERROR;
+*        IF ERROR: NON-ZERO,
+*                  FCBERR(A4) AND ERRTYP BOTH HAVE ERROR CODE
+*        ALL REGISTERS RESTORED!
+
+PRIMRD    movem.l d0-d3/a0-a4,-(A7)
+
+          lea.l  sys_dcb,a0        build MONK FCB
+          move.b FCBDRV(A4),(a0)   drive
+          move.b FCBCTR(a4),3(a0)  track
+          move.b FCBCSE(a4),5(a0)  sector
+          lea.l  FCBDAT(a4),a1     buffer
+          move.l a1,6(a0)
+*
+          jsr select
+          jsr read
+*
+          movem.l (A7)+,d0-d3/a0-a4
+          RTS
+*
+*********************************************
+* WRITE ENTRY POINT FOR PRIMARY DISK DRIVERS
+*********************************************
+
+* THIS IS ESSENTIALLY SWRITE OPERATION
+
+* ENTER: A4 POINTS TO FCB WHICH NEEDS DATA.
+*        FCBDRV(A4) HAS DRIVE NUMBER
+*        FCBCTR(A4) HAS TRACK NUMBER
+*        FCBCSE(A4) HAS SECTOR NUMBER
+
+* EXIT:  ZERO IF NO ERROR;
+*        IF ERROR: NON-ZERO,
+*                  FCBERR(A4) AND ERRTYP BOTH HAVE ERROR CODE
+*        ALL REGISTERS RESTORED!
+
+PRIMWR    movem.l d0-d3/a0-a4,-(A7)
+
+          lea.l  sys_dcb,a0        build MONK FCB
+          move.b FCBDRV(A4),(a0)   drive
+          move.b FCBCTR(a4),3(a0)  track
+          move.b FCBCSE(a4),5(a0)  sector
+          lea.l  FCBDAT(a4),a1     buffer
+          move.l a1,6(a0)
+*
+          jsr select
+          jsr write
+*
+          movem.l (A7)+,d0-d3/a0-a4
+          RTS
+*
+******************************************
+**** --- PART 2 - CONSOLE DRIVERS --- ****
+******************************************
+
+* CONVENTIONS: D1-D5 AND A1-A5 MUST BE PRESERVED
+*                  (EXCEPT WHEN D5 IS FOR INPUT)
+*              OTHER REGISTERS ARE SCRATCH
+
+
+* SERIAL INPUT PORT STATUS CHECK.
+*
+*    INPUT: NONE
+*    OUTPUT: RETURN ZERO IF NO CHARACTER READY,
+*                   NON-ZERO IF CHARACTER IS THERE
+*    REGISTERS USED: NONE (MUST PRESERVE D5)
+
+STAT      jmp status             
+
+* OUTPUT CHARACTER IN D5 TO TERMINAL
+*
+*    INPUT: D5 HOLDS CHARACTER TO OUTPUT
+*    OUTPUT: NONE
+*    REGISTERS USED: NONE (MUST PRESERVE D5)
+
+OUTEEE      movem.l d0,-(A7)
+            move.l d5,d0
+            jsr outch
+            movem.l (A7)+,d0
+            rts
+
+* INPUT CHARACTER INTO D5 AND ECHO IT
+*
+*    INPUT: NONE
+*    OUTPUT: D5 HOLDS 7-BIT CHARACTER INPUT
+*    REGISTERS USED: PRESERVED (EXCEPT D5 HOLDS CHAR)
+
+INEEE       movem.l d0,-(A7)
+            jsr inch
+            move.l d0,d5
+            movem.l (A7)+,d0
+            rts
+
+* KEYBOARD INPUT INTO D5 WITHOUT ECHO
+*
+*    INPUT: NONE
+*    OUTPUT: D5 HOLDS 8-BIT CHARACTER INPUT
+*    REGISTERS USED: PRESERVED (EXCEPT D5 HOLDS CHAR)
+
+KINPUT      movem.l d0,-(A7)
+            jsr inch1
+            move.l d0,d5
+            movem.l (A7)+,d0
+            rts
+
+
+* RE-ENTER MONITOR WITHOUT RESET
+*
+*    INPUT: NONE
+*    OUTPUT: NONE
+*    REGISTERS USED: A5 AND A7; CHANGED, IRRELEVANT
+
+MONITX    jmp mwarm
+
+* RESET MONITOR/SYSTEM AS IF RESET FROM SCRATCH
+
+RESETX    jmp mcold
+
+* TIMER ON, OFF, INIT
+* THESE ROUTINES DO NOTHING NOW, ARE STRICTLY PREPARATION
+* FOR FUTURE ENHANCEMENTS
+*
+*    INPUT: NONE
+*    OUTPUT: NONE
+*    REGISTERS USED: NONE
+
+TIMRTS    RTS                      RTS DO NOTHING
+
+*****************************************
+*** --- PART 3 - GET DATE ROUTINE --- ***
+*****************************************
+
+* IF THE SYSTEM HAS A CLOCK/CALENDARY CHIP, THEN
+* THIS ROUTINE WOULD GET THE DATE DURING BOOTING,
+* AND PUT IT INTO THE MONTH, DAY, YEAR LOCATIONS.
+* DO NOTHING OTHERWISE
+* ALL REGISTERS MUST BE PRESERVED
+
+GDATE    move.b   #2,$F0003
+         MOVE.B   $F0001,D5          MINUTES
+         CMP.B    #$59,D5            CHECK
+         BHI      NOGOOD             CLOCK NOT SET IF >59 MIN
+*
+         move.b   #4,$F0003
+         MOVE.B   $F0001,D5          HOURS
+         CMP.B    #$23,D5            CHECK IT
+         BHI      NOGOOD             NG IF PAST 23 O'CLOCK
+*
+         move.b   #6,$F0003
+         MOVE.B   $F0001,D5          DAY OF WEEK
+         CMP.B    #7,D5              CHECK IT
+         BHI      NOGOOD             NO 8-DAY WEEKS ALLOWED
+*
+         move.b   #7,$F0003
+         MOVE.B   $F0001,D5         GET DAY OF MONTH
+         CMP.B    #$31,D5            CHECK IT
+         BHI      NOGOOD             MAX 31 DAYS A MONTH
+         BSR      BCDBIN             CVT TO BINARY
+         MOVE.B   D5,CDAY            GIVE IT TO SK*DOS
+*
+         move.b   #8,$F0003
+         MOVE.B   $F0001,D5          GET MONTH
+         CMP.B    #$12,D5            CHECK IT
+         BHI      NOGOOD             MAX 12 MONTHS A YEAR
+         BSR      BCDBIN             CVT TO BINARY
+         MOVE.B   D5,CMONTH
+*
+         move.b   #9,$F0003
+         MOVE.B   $F0001,D5         GET THE YEAR
+         CMP.B    #$99,D5
+         BHI      NOGOOD             ASSUME THIS CENTURY
+         BSR      BCDBIN             CVT TO BINARY
+         MOVE.B   D5,CYEAR           GIVE IT TO SK*DOS
+*
+         rts
+
+* ON INVALID DATE, GET IT FROM KEYBOARD
+
+NOGOOD   LEA      CLKMSG(PC),A4        SAY CLOCK IS NO GOOD
+         JSR      PSTRNV               ASK FOR DATE
+         JMP      ASKDAV               GO USE REGULAR SK*DOS DATE ENTRY
+CLKMSG   DC.B     $D,$A
+         DC.B     "CALENDAR/CLOCK NOT PROPERLY SET -",4
+*
+* CONVERT D5.B FROM BCD TO BINARY - PRESERVE ALL, INCLUDING
+* TOP THREE BYTES IN D5
+
+BCDBIN   MOVE.L   D5,-(A7)          PUT ON STACK
+         LSR.B    #4,D5              TENS DIGIT RIGHT
+         AND.W    #$F,D5             ZERO REST OF WORD
+         MULU     #10,D5              TIMES TEN
+         SWAP     D5                  SAVE IN LEFT HALF
+         MOVE.B   3(A7),D5          GET ORIGINAL BCD NUMBER
+         AND.B    #$F,D5             UNITS DIGIT
+         MOVE.B   D5,3(A7)          PUT ON STACK
+         SWAP     D5                  TENS DIGIT AGAIN
+         ADD.B    3(A7),D5           ADD BACK UNITS
+         MOVE.B   D5,3(A7)
+         MOVE.L   (A7)+,D5          FINALLY PULL AGAIN
+         RTS      AND RETURN
+*
+*****************************************
+*** --- PART 4 - GET TIME ROUTINE --- ***
+*****************************************
+
+* IF THE SYSTEM HAS A CLOCK/CALENDARY CHIP, THEN
+* THIS ROUTINE WOULD BE CALLED EACH TIME A FILE IS
+* OPENED FOR WRITING, WOULD GET THE CURRENT TIME,
+* AND PACK IT INTO A ONE-BYTE NUMBER IN D5.B.
+* DO NOTHING OTHERWISE.
+* ALL REGISTERS MUST BE PRESERVED
+
+GTIME    move.b   #2,$F0003
+         MOVE.B   $F0001,D5          MINUTES
+         BSR      BCDBIN             CVT MINUTE TO BINARY
+         DIVU     #6,D5               DIVIDE MINUTES BY 6
+         MOVE.B   D5,D7             SAVE MINUTES/6 IN D7
+*
+         move.b   #4,$F0003
+         MOVE.B   $F0001,D5
+         BSR      BCDBIN             GET HOURS
+         MULU     #10,D5              HOURS * 10
+         ADD.B    D7,D5              HOURS*10 + MINUTES/6 IN D5
+         BNE      QUIT               IF NOT 00
+         MOVE.B   #$F0,D5           CHANGE 00 TO F0
+QUIT     RTS      RETURN
+*
+* IF TIME IS NG, RETURN 0
+TIMENG   MOVE.L   #0,D5
+         RTS      AND THEN QUIT
+*
+*********************************
+**** --- PART 5 - OFFSET --- ****
+*********************************
+
+*********************************
+**** --- PART 6 - VECTORS --- ****
+*********************************
+
+* perform any necessary OS init
+osinit    lea.l  os_jmptab,a0       overlay jump table entries
+
+*                                    overlay system vars
+ojtlp     cmp.l   #$FFFFFFFF,(a0)
+          beq ojt1
+*
+          move.l (a0)+,a1         pick up the address
+          move.w (a0)+,(a1)+      move the jump instruction
+          move.w (a0)+,(a1)+
+          move.w (a0)+,(a1)+
+          bra ojtlp     
+*
+ojt1      move.l  #$37FFF,MEMINI      fix memend
+          rts 
+*
+os_jmptab dc.l DIREAD
+          JMP PRIMRD               PRIMARY READ ROUTINE
+*
+          dc.l DIWRIT
+          JMP PRIMWR               PRIMARY WRITE ROUTINE
+*
+          dc.l STATVE
+          JMP STAT                 CHECK KEYBOARD STATUS
+*
+          dc.l OUTCHV
+          JMP OUTEEE               OUTPUT CHARACTER TO TERMINAL
+*
+          dc.l INCHV
+          JMP INEEE                KEYBOARD INPUT WITH ECHO
+*
+          dc.l KINPUV
+          JMP KINPUT               KEYBOARD INPUT WITHOUT ECHO
+*
+          dc.l MONITV
+          JMP MONITX               RE-ENTER MONITOR
+*
+          dc.l RESETV              RESET MONITOR / SYSTEM
+          JMP RESETX
+*
+          dc.l TIMINI
+          JMP TIMRTS               TIMER INITIALIZE
+*
+          dc.l TIMOFF
+          JMP TIMRTS               TIMER OFF
+*
+          dc.l TIMON
+          JMP TIMRTS               TIMER ON
+*
+          dc.l GETDAT               NOTHING NEEDED HERE
+          jmp GDATE
+*
+          dc.l INTIME               NOTHING NEEDED HERE
+          jmp GDATE
+*
+          dc.l $FFFFFFFF
+*

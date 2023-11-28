@@ -1,0 +1,17 @@
+**********************
+* OS boot SK*DOS 68K *
+**********************
+*
+* SK*DOS 68K boot
+bos      dc.b    $d,'Booting SK*DOS 68K',$d,$a,$a,0,0
+bo       lea.l   bos(pc),a0
+         bsr     pdata1
+*
+         jsr     osinit  overlay jump tables, get date and time etc
+         jmp     $1000   SK*DOS 68K cold start
+*
+* OS9 boot
+ob       jmp mwarm       move.l #$1400,a7
+*
+         jmp  $c3462      modules are already in prom
+*

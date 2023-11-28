@@ -1,0 +1,366 @@
+00002 00000000
+00003 00000000                      * TIME ROUTINE FOR MB2K2
+00004 00000000
+00005 00000000                      *SK*DOS LOCATIONS
+00006 00000000
+00007 00000000                               LIB      SKEQUATE.txt
+00001 00000000                      * SK*DOS / 68K EQUATES FOR USER PROGRAMS
+00167 00000000
+00008 00000000
+00009 00000000 6002                 START    BRA.S    START1
+00010 00000002
+00011 00000002 0100                 VER      DC.W     $0100              VERSION
+00012 00000004
+00013 00000004                      * DISPLAY CURRENT CLOCK DATE AND TIME
+00014 00000004
+00015 00000004 13FC0006000F0003     START1   move.b   #6,$F0003
+00016 0000000C 1239000F0001                  MOVE.B   $F0001,D1       DAY OF WEEK
+00017 00000012 0C010008                      CMP.B    #8,D1              CHECK IF VALID >>A<<
+00018 00000016 6502                          BCS.S    DOWOK              OK IF <8 >>A<<
+00019 00000018 4201                          CLR.B    D1                 ELSE SET TO 0 >>A<<
+00020 0000001A C2FC000A             DOWOK    MULU     #10,D1              MULT BY 10
+00021 0000001E 49FA0484                      LEA      DAYTAB(PC),A4        POINT TO DAY TABLE
+00022 00000022 D9C1                          ADD.L    D1,A4              POINT TO THE DAY
+00023 00000024 A035                          DC       PSTRNG                PRINT IT
+00024 00000026 183C0020                      MOVE.B   #$20,D4
+00025 0000002A A033                          DC       PUTCH                 SPACE
+00026 0000002C                      *
+00027 0000002C 13FC0008000F0003              move.b   #8,$F0003
+00028 00000034 1839000F0001                  MOVE.B   $F0001,D4
+00029 0000003A 610001A6                      BSR.L    PRINT              PRINT MONTH
+00030 0000003E 183C002D                      MOVE.B   #$2D,D4
+00031 00000042 A033                          DC       PUTCH                 PRINT -
+00032 00000044                      *
+00033 00000044 13FC0007000F0003              move.b   #7,$F0003
+00034 0000004C 1839000F0001                  MOVE.B   $F0001,D4
+00035 00000052 6100018E                      BSR.L    PRINT              PRINT DAY
+00036 00000056 183C002D                      MOVE.B   #$2D,D4
+00037 0000005A A033                          DC       PUTCH                 PRINT -
+00038 0000005C                      *
+00039 0000005C 13FC0009000F0003              move.b   #9,$F0003
+00040 00000064 1839000F0001                  MOVE.B   $F0001,D4
+00041 0000006A 61000176                      BSR.L    PRINT              PRINT YEAR
+00042 0000006E 183C002C                      MOVE.B   #$2C,D4
+00043 00000072 A033                          DC       PUTCH                 COMMA
+00044 00000074 183C0020                      MOVE.B   #$20,D4
+00045 00000078 A033                          DC       PUTCH                 SPACE
+00046 0000007A                      *
+00047 0000007A 13FC0004000F0003              move.b   #4,$F0003
+00048 00000082 1839000F0001                  MOVE.B   $F0001,D4
+00049 00000088 61000140                      BSR.L    PRINTH             PRINT HOUR
+00050 0000008C 183C003A                      MOVE.B   #$3A,D4
+00051 00000090 A033                          DC       PUTCH                 PRINT :
+00052 00000092                      *
+00053 00000092 13FC0002000F0003              move.b   #2,$F0003
+00054 0000009A 1839000F0001                  MOVE.B   $F0001,D4
+00055 000000A0 61000140                      BSR.L    PRINT              PRINT MINUTES
+00056 000000A4 183C003A                      MOVE.B   #$3A,D4
+00057 000000A8 A033                          DC       PUTCH                 SPACE
+00058 000000AA                      *
+00059 000000AA 13FC0004000F0003              move.b   #4,$F0003
+00060 000000B2 1839000F0001                  MOVE.B   $F0001,D4         GET HOURS AGAIN
+00061 000000B8 0C040012                      CMP.B    #$12,D4            >>A<<
+00062 000000BC 6406                          BCC.S    ISPM
+00063 000000BE 183C0061                      MOVE.B   #$61,D4           READY TO PRINT AM
+00064 000000C2 6004                          BRA.S    PRAMPM             THEN PRINT IT
+00065 000000C4 183C0070             ISPM     MOVE.B   #$70,D4
+00066 000000C8 A033                 PRAMPM   DC       PUTCH                 PRINT A OR P
+00067 000000CA 183C006D                      MOVE.B   #$6D,D4
+00068 000000CE A033                          DC       PUTCH                 PRINT M
+00069 000000D0 A034                          DC       PCRLF                 SKIP SPACE
+00070 000000D2
+00071 000000D2
+00072 000000D2                      * NOW CHECK WHETHER NEW TIME IS TO BE INPUT
+00073 000000D2
+00074 000000D2 206E02F6                      MOVE.L   LPOINT(A6),A0
+00075 000000D6 1018                          MOVE.B   (A0)+,D0          GET NEXT CHARACTER ON INPUT LINE
+00076 000000D8 0C00003F                      CMP.B    #$3F,D0
+00077 000000DC 67000182                      BEQ.L    HELP               HELP IF ?
+00078 000000E0 020000DF                      AND.B    #$DF,D0            CVT TO UPPER CASE
+00079 000000E4 0C000053                      CMP.B    #$53,D0            SET?
+00080 000000E8 6702                          BEQ.S    INPTIM             YES, INPUT NEW TIME
+00081 000000EA A01E                 QUIT     DC       WARMST                ELSE QUIT
+00082 000000EC
+00083 000000EC                      * NOW PROMPT FOR AND INPUT THE NEW TIME
+00084 000000EC
+00085 000000EC 49FA0288             INPTIM   LEA      INPMSG(PC),A4
+00086 000000F0 A035                          DC       PSTRNG                PRINT INITIAL MESSAGE
+00087 000000F2 A034                          DC       PCRLF
+00088 000000F4 49FA02AD                      LEA      DOWMSG(PC),A4
+00089 000000F8 A035                          DC       PSTRNG                ASK FOR DOW
+00090 000000FA 6100012C                      BSR.L    INPUT              GET THE INPUT
+00091 000000FE 02050007                      AND.B    #$07,D5
+00092 00000102 4BFA03F0                      LEA      DOW(PC),A5
+00093 00000106 1A85                          MOVE.B   D5,(A5)
+00094 00000108 49FA02C2                      LEA      MONMSG(PC),A4
+00095 0000010C A035                          DC       PSTRNG                ASK FOR MONTH
+00096 0000010E 61000118                      BSR.L    INPUT              GET THE INPUT
+00097 00000112 0205001F                      AND.B    #$1F,D5
+00098 00000116 4BFA03DD                      LEA      TMONTH(PC),A5
+00099 0000011A 1A85                          MOVE.B   D5,(A5)
+00100 0000011C 49FA02C5                      LEA      DAYMSG(PC),A4
+00101 00000120 A035                          DC       PSTRNG                ASK FOR DAY
+00102 00000122 61000104                      BSR.L    INPUT              GET THE INPUT
+00103 00000126 0205003F                      AND.B    #$3F,D5
+00104 0000012A 4BFA03CA                      LEA      TDAY(PC),A5
+00105 0000012E 1A85                          MOVE.B   D5,(A5)
+00106 00000130 49FA02C6                      LEA      YEAMSG(PC),A4
+00107 00000134 A035                          DC       PSTRNG                ASK FOR YEAR
+00108 00000136 610000F0                      BSR.L    INPUT              GET THE INPUT
+00109 0000013A 4BFA03BB                      LEA      TYEAR(PC),A5
+00110 0000013E 1A85                          MOVE.B   D5,(A5)
+00111 00000140 49FA02CC                      LEA      HOUMSG(PC),A4
+00112 00000144 A035                          DC       PSTRNG                ASK FOR HOUR
+00113 00000146 610000E0                      BSR.L    INPUT              GET THE INPUT
+00114 0000014A 0C05000C                      CMP.B    #12,D5             CHECK THE HOURS
+00115 0000014E 6602                          BNE.S    STOHRS             GO STORE IF NOT 12 HOURS
+00116 00000150 4205                          CLR.B    D5                 ELSE CHANGE 12 TO 00
+00117 00000152 4BFA03A4             STOHRS   LEA      HOUR(PC),A5
+00118 00000156 0205003F                      AND.B    #$3F,D5
+00119 0000015A 1A85                          MOVE.B   D5,(A5)
+00120 0000015C 49FA02C6                      LEA      MINMSG(PC),A4
+00121 00000160 A035                          DC       PSTRNG                ASK FOR MINUTE
+00122 00000162 610000C4                      BSR.L    INPUT              GET THE INPUT
+00123 00000166 0205007F                      AND.B    #$7F,D5
+00124 0000016A 4BFA038D                      LEA      MINUTE(PC),A5
+00125 0000016E 1A85                          MOVE.B   D5,(A5)
+00126 00000170 49FA02CA                      LEA      SECMSG(PC),A4
+00127 00000174 A035                          DC       PSTRNG                ASK FOR SECONDS
+00128 00000176 610000B0                      BSR.L    INPUT              GET THE INPUT
+00129 0000017A 0205007F                      AND.B    #$7F,D5
+00130 0000017E 4BFA037A                      LEA      SECOND(PC),A5
+00131 00000182 1A85                          MOVE.B   D5,(A5)
+00132 00000184 49FA02CE             ASKAMP   LEA      AMPMSG(PC),A4
+00133 00000188 A035                          DC       PSTRNG                ASK FOR AM OR PM
+00134 0000018A A029                          DC       GETCH
+00135 0000018C 020500DF                      AND.B    #$DF,D5            CVT TO UPPER CASE
+00136 00000190 0C050041                      CMP.B    #$41,D5            A?
+00137 00000194 6718                          BEQ.S    CHEKIT             LEAVE IF AM
+00138 00000196 0C050050                      CMP.B    #$50,D5            P?
+00139 0000019A 66E8                          BNE.S    ASKAMP             REPEAT IF NOT AM OR PM
+00140 0000019C 103A035A                      MOVE.B   HOUR(PC),D0
+00141 000001A0 0600000C                      ADD.B    #12,D0             CVT TO PM
+00142 000001A4 0205003F                      AND.B    #$3F,D5
+00143 000001A8 4BFA034E                      LEA      HOUR(PC),A5
+00144 000001AC 1A80                          MOVE.B   D0,(A5)
+00145 000001AE
+00146 000001AE                      * NOW CHECK IF IT'S OK
+00147 000001AE
+00148 000001AE 49FA02C0             CHEKIT   LEA      OKMSG(PC),A4
+00149 000001B2 A035                          DC       PSTRNG                ASK FOR Y OR N
+00150 000001B4 A029                          DC       GETCH
+00151 000001B6 020500DF                      AND.B    #$DF,D5            CVT TO UPPER CASE
+00152 000001BA 0C05004E                      CMP.B    #$4E,D5            N?
+00153 000001BE 6700FF2A                      BEQ.L    QUIT               NO, QUIT
+00154 000001C2 0C050059                      CMP.B    #$59,D5            Y?
+00155 000001C6 66E6                          BNE.S    CHEKIT             RETRY IF NOT Y OR N
+00156 000001C8
+00157 000001C8                      * NOW TRANSFER DATA INTO CLOCK CHIP. FIRST, KICK-START IT
+00158 000001C8
+00159 000001C8                      *          MOVE.B CLCONT,D0
+00160 000001C8                      *          OR.B #$80,D0             WRITE BIT TO 1
+00161 000001C8                      *          MOVE.B D0,CLCONT
+00162 000001C8                      *          MOVE.B #0,CLSEC          CLEAR STOP BIT
+00163 000001C8                      *          MOVE.B #$80,CLHOUR       SET KICK-START BIT
+00164 000001C8                      *          MOVE.B CLCONT,D0
+00165 000001C8                      *          AND.B #$7F,D0            WRITE BIT TO 0
+00166 000001C8                      *          MOVE.B D0,CLCONT
+00167 000001C8                      *          MOVE.W #$FFFF,D0
+00168 000001C8                      *WAIT2S    DIVU #1,D7
+00169 000001C8                      *          DBRA D0,WAIT2S           WAIT ABOUT 2 SECONDS
+00170 000001C8                      *          MOVE.B CLCONT,D0
+00171 000001C8                      *          OR.B #$80,D0             WRITE BIT TO 1
+00172 000001C8                      *          MOVE.B D0,CLCONT
+00173 000001C8                      *          MOVE.B #0,CLHOUR         RESET KICK-START BIT
+00174 000001C8
+00175 000001C8                      *          MOVE.B SECOND(PC),D0
+00176 000001C8                      *          BSR.L BINBCD             SECOND TO BCD
+00177 000001C8                      *          MOVE.B D0,CLSEC
+00178 000001C8                      *          MOVE.B MINUTE(PC),D0
+00179 000001C8                      *          BSR.L BINBCD             MINUTE TO BCD
+00180 000001C8                      *          MOVE.B D0,CLMIN
+00181 000001C8                      *          MOVE.B HOUR(PC),D0
+00182 000001C8                      *          BSR.L BINBCD             HOUR TO BCD
+00183 000001C8                      *          MOVE.B D0,CLHOUR
+00184 000001C8                      *          MOVE.B DOW(PC),D0
+00185 000001C8                      *          BSR.L BINBCD             DAY OF WEEK TO BCD
+00186 000001C8                      *          MOVE.B D0,CLDAY
+00187 000001C8                      *          MOVE.B TDAY(PC),D0
+00188 000001C8                      *          BSR.L BINBCD             DAY TO BCD
+00189 000001C8                      *          MOVE.B D0,CLDATE
+00190 000001C8                      *          MOVE.B TMONTH(PC),D0
+00191 000001C8                      *          BSR.L BINBCD             MONTH TO BCD
+00192 000001C8                      *          MOVE.B D0,CLMON
+00193 000001C8                      *          MOVE.B TYEAR(PC),D0
+00194 000001C8                      *          BSR.L BINBCD             YEAR TO BCD
+00195 000001C8                      *          MOVE.B D0,CLYEAR
+00196 000001C8
+00197 000001C8                      *          MOVE.B CLCONT,D0         FINALLY, RESTART CLOCK
+00198 000001C8                      *          AND.B #$7F,D0            WRITE BIT TO 0
+00199 000001C8                      *          MOVE.B D0,CLCONT
+00200 000001C8
+00201 000001C8 A01E                          DC       WARMST                AND RETURN TO DOS
+00202 000001CA
+00203 000001CA                      * PRINT SUBROUTINE - PRINT BCD NUMBER IN D4
+00204 000001CA                      * TWO ENTRIES - ONE FOR HOURS TO SUBTRACT 12 IF PM
+00205 000001CA
+00206 000001CA 6100002E             PRINTH   BSR.L    BCDBIN             CVT FROM BCD TO BIN
+00207 000001CE 6606                          BNE.S    NOT0HR             IF NOT 12 MIDNOGHT
+00208 000001D0 0604000C                      ADD.B    #12,D4             CHANGE 00 HOURS TO 12
+00209 000001D4 6010                          BRA.S    PRINT1
+00210 000001D6 0C04000C             NOT0HR   CMP.B    #12,D4             1 TO 12 HOURS?
+00211 000001DA 630A                          BLS.S    PRINT1             YES, USE AS IS
+00212 000001DC 0404000C                      SUB.B    #12,D4             IF >12 SUBTRACT 12 HRS
+00213 000001E0 6004                          BRA.S    PRINT1
+00214 000001E2 61000016             PRINT    BSR.L    BCDBIN             CVT TO BINARY
+00215 000001E6 88FC000A             PRINT1   DIVU     #10,D4              UNITS | TENS DIGITS
+00216 000001EA 06040030                      ADD.B    #$30,D4            CVT TENS TO ASCII
+00217 000001EE A033                          DC       PUTCH                 PRINT IT
+00218 000001F0 4844                          SWAP     D4                  UNITS
+00219 000001F2 06040030                      ADD.B    #$30,D4            CVT UNITS TO ASCII
+00220 000001F6 A033                          DC       PUTCH                 PRINT IT
+00221 000001F8 4E75                          RTS
+00222 000001FA
+00223 000001FA                      * CONVERT D4.B FROM BCD TO BINARY D4.L - PRESERVE ALL
+00224 000001FA
+00225 000001FA 0284000000FF         BCDBIN   AND.L    #$FF,D4            CVT .B TO .L
+00226 00000200 2F04                          MOVE.L   D4,-(A7)          PUT ON STACK
+00227 00000202 E80C                          LSR.B    #4,D4              TENS DIGIT RIGHT
+00228 00000204 0244000F                      AND.W    #$F,D4             ZERO REST OF WORD
+00229 00000208 C8FC000A                      MULU     #10,D4              TIMES TEN
+00230 0000020C 4844                          SWAP     D4                  SAVE IN LEFT HALF
+00231 0000020E 182F0003                      MOVE.B   3(A7),D4          GET ORIGINAL BCD NUMBER
+00232 00000212 0204000F                      AND.B    #$F,D4             UNITS DIGIT
+00233 00000216 1F440003                      MOVE.B   D4,3(A7)          PUT ON STACK
+00234 0000021A 4844                          SWAP     D4                  TENS DIGIT AGAIN
+00235 0000021C D82F0003                      ADD.B    3(A7),D4           ADD BACK UNITS
+00236 00000220 1F440003                      MOVE.B   D4,3(A7)
+00237 00000224 281F                          MOVE.L   (A7)+,D4          FINALLY PULL AGAIN
+00238 00000226 4E75                          RTS      AND RETURN
+00239 00000228
+00240 00000228                      * INPUT SUBROUTINE - INPUT 2-DIGIT NUMBER AS BINARY
+00241 00000228
+00242 00000228 A029                 INPUT    DC       GETCH                 GET TENS DIGIT
+00243 0000022A 04050030                      SUB.B    #$30,D5            CVT FROM ASCII
+00244 0000022E 0C050009                      CMP.B    #9,D5              CHECK IT
+00245 00000232 62F4                          BHI.S    INPUT
+00246 00000234 4281                          CLR.L    D1
+00247 00000236 1205                          MOVE.B   D5,D1             SAVE TENS IN D1
+00248 00000238 C2FC000A                      MULU     #10,D1
+00249 0000023C A029                          DC       GETCH                 GET SECOND
+00250 0000023E 04050030                      SUB.B    #$30,D5            CVT FROM ASCII
+00251 00000242 0C050009                      CMP.B    #9,D5              CHECK IT
+00252 00000246 62E0                          BHI.S    INPUT
+00253 00000248 DA01                          ADD.B    D1,D5              COMBINE
+00254 0000024A 4E75                          RTS      AND RETURN
+00255 0000024C
+00256 0000024C                      * CONVERT D0.B FROM BINARY TO BCD D0.L - PRESERVE ALL
+00257 0000024C
+00258 0000024C 0280000000FF         BINBCD   AND.L    #$FF,D0
+00259 00000252 80FC000A                      DIVU     #10,D0              UNITS | TENS DIGITS
+00260 00000256 E908                          LSL.B    #4,D0              SHIFT TENS NIBBLE LEFT
+00261 00000258 1200                          MOVE.B   D0,D1             SAVE IN D1
+00262 0000025A 4840                          SWAP     D0                  UNITS
+00263 0000025C D001                          ADD.B    D1,D0              COMBINE
+00264 0000025E 4E75                          RTS
+00265 00000260
+00266 00000260                      * PRINT HELP MESSAGE
+00267 00000260
+00268 00000260 49FA0006             HELP     LEA      HLPMSG(PC),A4
+00269 00000264 A035                          DC       PSTRNG
+00270 00000266 A01E                          DC       WARMST
+00271 00000268
+00272 00000268                      * TEST STRINGS
+00273 00000268
+00274 00000268 54494D45206973207573 HLPMSG   DC.B     'TIME is used to display or set the current date and time'
+               656420746F2064697370
+               6C6179206F7220736574
+               20746865206375727265
+               6E74206461746520616E
+               642074696D65
+00275 000002A0 0D0A                          DC.B     $0D,$0A
+00276 000002A2 696E2074686520636C6F          DC.B     'in the clock/calendar IC. The syntax is'
+               636B2F63616C656E6461
+               722049432E2054686520
+               73796E746178206973
+00277 000002C9 0D0A                          DC.B     $0D,$0A
+00278 000002CB 20202054494D45                DC.B     '   TIME'
+00279 000002D2 0D0A                          DC.B     $0D,$0A
+00280 000002D4 746F20646973706C6179          DC.B     'to display the current date and time, or'
+               20746865206375727265
+               6E74206461746520616E
+               642074696D652C206F72
+00281 000002FC 0D0A                          DC.B     $0D,$0A
+00282 000002FE 20202054494D452053            DC.B     '   TIME S'
+00283 00000307 0D0A                          DC.B     $0D,$0A
+00284 00000309 746F207365742061206E          DC.B     'to set a new date and time. If setting the clock, make sure'
+               6577206461746520616E
+               642074696D652E204966
+               2073657474696E672074
+               686520636C6F636B2C20
+               6D616B652073757265
+00285 00000344 0D0A                          DC.B     $0D,$0A
+00286 00000346 746F20616E7377657220          DC.B     'to answer all questions with two-digit numbers.',4
+               616C6C20717565737469
+               6F6E7320776974682074
+               776F2D6469676974206E
+               756D626572732E04
+00287 00000376 496E7075742074686520 INPMSG   DC.B     'Input the following data as 2-digit numbers:',4
+               666F6C6C6F77696E6720
+               6461746120617320322D
+               6469676974206E756D62
+               6572733A04
+00288 000003A3 456E7465722064617920 DOWMSG   DC.B     'Enter day of week as 01-07 (01=Sunday): ',4
+               6F66207765656B206173
+               2030312D303720283031
+               3D53756E646179293A20
+               04
+00289 000003CC 456E746572206D6F6E74 MONMSG   DC.B     'Enter month as 01-12: ',4
+               682061732030312D3132
+               3A2004
+00290 000003E3 456E7465722064617920 DAYMSG   DC.B     'Enter day as 01-31: ',4
+               61732030312D33313A20
+               04
+00291 000003F8 456E7465722079656172 YEAMSG   DC.B     'Enter year as 85-99: ',4
+               2061732038352D39393A
+               2004
+00292 0000040E 456E74657220686F7572 HOUMSG   DC.B     'Enter hour as 01-12: ',4
+               2061732030312D31323A
+               2004
+00293 00000424 456E746572206D696E75 MINMSG   DC.B     'Enter minute as 00-59: ',4
+               74652061732030302D35
+               393A2004
+00294 0000043C 456E746572207365636F SECMSG   DC.B     'Enter second as 00-59: ',4
+               6E642061732030302D35
+               393A2004
+00295 00000454 456E746572204120666F AMPMSG   DC.B     'Enter A for AM or P for PM ',4
+               7220414D206F72205020
+               666F7220504D2004
+00296 00000470 456E7465722059207768 OKMSG    DC.B     'Enter Y when ready to start clock, or N to cancel: ',4
+               656E2072656164792074
+               6F20737461727420636C
+               6F636B2C206F72204E20
+               746F2063616E63656C3A
+               2004
+00297 000004A4 2A4E4F54205345542A04 DAYTAB   DC.B     '*NOT SET*',4 >>A<<
+00298 000004AE 53756E64617904000000          DC.B     'Sunday',4,0,0,0
+00299 000004B8 4D6F6E64617904000000          DC.B     'Monday',4,0,0,0
+00300 000004C2 54756573646179040000          DC.B     'Tuesday',4,0,0
+00301 000004CC 5765646E657364617904          DC.B     'Wednesday',4
+00302 000004D6 54687572736461790400          DC.B     'Thursday',4,0
+00303 000004E0 46726964617904000000          DC.B     'Friday',4,0,0,0
+00304 000004EA 53617475726461790400          DC.B     'Saturday',4,0
+00305 000004F4
+00306 000004F4                      * DATA AREA
+00307 000004F4 00000001             DOW      DS.B     1
+00308 000004F5 00000001             TMONTH   DS.B     1
+00309 000004F6 00000001             TDAY     DS.B     1
+00310 000004F7 00000001             TYEAR    DS.B     1
+00311 000004F8 00000001             HOUR     DS.B     1
+00312 000004F9 00000001             MINUTE   DS.B     1
+00313 000004FA 00000001             SECOND   DS.B     1
+00314 000004FB
+00315 000004FC 00000000                      END      START
+00316 000004FC
+
+No Syntax Error(s)

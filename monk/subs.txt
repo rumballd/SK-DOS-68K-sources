@@ -1,0 +1,254 @@
+*******************************
+* Common monitor subroutines. *
+*******************************
+*
+* Print a CR & LF .
+* Entry:- No parameters.
+* Exit:-   No registers altered.
+crlfs    dc.b    $0d,$0a,0,0
+pcrlf    move.l  a0,-(sp)
+         lea     crlfs(pc),a0
+         bsr.s   pdata1
+         move.l  (sp)+,a0
+         rts
+*
+* Print character string, terminate with zero byte.
+* Entry:- a0 points to string.
+* Exit:-  a0 points to 1st byte past string.
+pdata1   move.l  d0,-(sp)
+pdloop   move.b  (a0)+,d0
+         beq.s   pdend
+         bsr     outch
+         bra.s   pdloop
+pdend    move.l  (sp)+,d0
+         rts
+*
+* Print character string preceded by a CR-LF.
+* Entry:- a0 points to string.
+* Exit:- a0 points to 1st byte past string.
+pstring  bsr.s   pcrlf
+         bra.s   pdata1
+*
+* Prompt routine, print string followed by hex input.
+* Entry:- a0 points to string.
+* Exit:-  d1 contains hex input.
+prompt   bsr.s   pdata1
+         bsr.s   inhex
+         rts
+*
+* Delay routine.
+* Entry:- d1 = delay in milli secs.
+* Exit:-   No registers altered.
+delay    movem.l d0-d1,-(sp)
+dloop1   move.w  #400,d0
+dloop2   dbf     d0,dloop2
+         dbf     d1,dloop1
+         movem.l (sp)+,d0-d1
+         rts
+*
+* Input n-digit hex number, terminate on a space.
+* Entry:- No parameters.
+* Exit:- d1 = number.
+inhex    move.l  d0,-(sp)
+         clr.l   d1
+inhex1   bsr     inch
+         cmp.b   #' ',d0
+         bne.s   inhex2
+         move.l  (sp)+,d0
+         rts
+inhex2   bsr.s   locase
+         sub.b   #'0',d0
+         bmi.s   nothex
+         cmp.b   #9,d0
+         ble.s   inhex3
+         cmp.b   #$31,d0
+         bmi.s   nothex
+         cmp.b   #$36,d0
+         bgt.s   nothex
+         sub.b   #39,d0
+inhex3   asl.l #4,d1
+         add.l   d0,d1
+         bra.s   inhex1
+nothex   moveq #8,d0
+         bsr     outch
+         bsr.s   outs
+         bsr     outch
+         bra     inhex1
+*
+* Convert character from upper to lower case.
+* Entry:- d0 = character
+* Exit:-  d0 = converted character.
+locase   cmp.b   #'A',d0
+         bcs.s   loc1
+         cmp.b   #'Z',d0
+         bhi.s   loc1
+         addi.b  #'a'-'A',d0
+loc1     rts
+*
+* Hex print routines.
+* Entry:- d0 = number to print.
+* Exit:-  No registers altered.
+out8h    swap    d0
+         bsr.s   out4h
+         swap    d0
+out4h    ror.w   #8,d0
+         bsr.s   out2h
+         rol.w   #8,d0
+out2h    ror.b   #4,d0
+         bsr.s   outh
+         rol.b   #4,d0
+outh     move.l  d0,-(sp)
+         and.b   #$0f,d0
+         add.b   #'0',d0
+         cmp.b   #'9',d0
+         bls.s   out1
+         add.b   #'A'-'9'-1,d0
+out1     bsr     outch
+         move.l  (sp)+,d0
+         rts
+*
+* Print a space.
+* Entry:- No parameters.
+* Exit:-   No registers altered.
+outs     move.l  d0,-(sp)
+         moveq   #' ',d0
+         bsr     outch
+         move.l  (sp)+,d0
+         rts
+*
+* print n spaces.
+* Entry:- d2 = number of spaces.
+* Exit:-   No registers altered.
+outns    move.l  d2,-(sp)
+outns1   bsr.s   outs
+         dbf     d2,outns1
+         move.l  (sp)+,d2
+         rts
+*
+* Random number generator.
+* Entry :- if       (d0)  = 0   then   0 <= random number <= 255
+*          if  1 <= (d0) <= 255 then   0 <= random number <= (d0)
+*          if       (d0)  > 255 then (d0) = new seed
+* Exit  :- (d0) = 8 bit random number.
+random   movem.l d1-d2,-(sp)
+         cmp.l   #255,d0      >255?
+         ble.s   r1
+         move.l  d0,rand      New seed.
+         clr.l   d0
+r1       tst.l   d0           =0?
+         bne.s   r2
+         move.l  #255,d0
+r2       move.l  d0,d2
+r3       bsr.s   r4
+         cmp.b   d2,d0
+         bhi.s   r3
+         movem.l (sp)+,d1-d2
+         rts
+*
+r4       moveq   #7,d1
+         move.l  rand,d0
+randloop rol.l   #1,d0
+         btst.l  #29,d0
+         beq.s   r5
+         bchg.l  #0,d0
+r5       dbf     d1,randloop
+         move.l  d0,rand
+         and.l   #255,d0
+         rts
+*
+*
+ PAGE
+*
+* Send the time string to the real time clock.
+* Entry :- a0 points to eight byte time string.
+* Exit :- No registers altered.
+putrtc   movem.l d0-d1/a0,-(sp)
+*
+         move.b #4,$F0003 hours
+         move.b (a0)+,$F0001
+         move.b #2,$F0003 mins
+         move.b (a0)+,$F0001
+         move.b #0,$F0003 secs
+         move.b (a0)+,$F0001
+         move.b #0,(a0)+ decimal secs
+*
+         move.b #9,$F0003 year
+         move.b (a0)+,$F0001
+         move.b #8,$F0003 month
+         move.b (a0)+,$F0001
+         move.b #7,$F0003 date
+         move.b (a0)+,$F0001
+         move.b #6,$F0003 day
+         move.b (a0)+,$F0001
+*
+         movem.l (sp)+,d0-d1/a0
+         rts
+*
+* Get a time string from the real time clock.
+* Entry :- (a0) pointer to eight byte time space.
+* Exit :- no registers altered.
+getrtc   movem.l d0/a0,-(sp)
+*
+         move.b #4,$F0003 hours
+         move.b $F0001,(a0)+
+         move.b #2,$F0003 mins
+         move.b $F0001,(a0)+
+         move.b #0,$F0003 secs
+         move.b $F0001,(a0)+
+         move.b #0,(a0)+ decimal secs
+*
+         move.b #9,$F0003 year
+         move.b $F0001,(a0)+
+         move.b #8,$F0003 month
+         move.b $F0001,(a0)+
+         move.b #7,$F0003 date
+         move.b $F0001,(a0)+
+         move.b #6,$F0003 day
+         move.b $F0001,(a0)+
+         movem.l (sp)+,d0/a0
+         rts
+
+*
+* Beep - sound buzzer for 100ms.
+* Entry :- no parameters.
+* Exit :- no registers altered.
+beep     move.l  d1,-(sp)
+         move.b  #$FF,$FF111
+         moveq   #25,d1
+         bsr     delay
+         move.b  #$0,$FF111
+         move.l  (sp)+,d1
+         rts
+*
+* IN Put data in security b/b ram.
+* Entry :- a0 = pointer to data in main ram
+*          a1 = pointer into b/b ram
+*          d0 = number of bytes to xfer
+* Exit :-  no registers altered
+in       movem.l d0/a0-a1,-(sp)
+         subq    #1,d0        adjust for dbf count
+         move.b  #$08,acia+30 enable b/b ram
+         add.l   #rtc,a1       add b/b base address
+in_loop  move.b  (a0)+,(a1)   move data byte
+         lea.l   2(a1),a1     adjust for low byte addressing
+         dbf     d0,in_loop
+         move.b  #$08,acia+28 disable b/b ram
+         movem.l (sp)+,d0/a0-a1
+         rts
+*
+* OUT Get data from security b/b ram.
+* Entry :- a0 = pointer to data in main ram
+*          a1 = pointer into b/b ram
+*          d0 = number of bytes to xfer
+* Exit :-  no registers altered
+out      movem.l d0/a0-a1,-(sp)
+         subq    #1,d0        adjust for dbf count
+         move.b  #$08,acia+30 enable b/b ram
+         add.l   #rtc,a1       add b/b base address
+out_loop move.b  (a1),(a0)+   move data byte
+         lea.l   2(a1),a1     adjust for low byte addressing
+         dbf     d0,out_loop
+         move.b  #$08,acia+28 disable b/b ram
+         movem.l (sp)+,d0/a0-a1
+         rts
+*

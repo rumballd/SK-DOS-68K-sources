@@ -1,0 +1,1184 @@
+**************************************
+* MONK terminal emulator charter set *
+**************************************
+*
+chrtab dc.b 0 Character = ' '
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+*
+ NOLIST
+*
+ dc.b $08 Character = '!'
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b 0
+ dc.b $08
+ dc.b $08
+ dc.b 0
+ dc.b 0
+*
+ dc.b $24 Character = '"'
+ dc.b $24
+ dc.b $24
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+*
+ dc.b $14 Character = '#'
+ dc.b $14
+ dc.b $14
+ dc.b $7f
+ dc.b $14
+ dc.b $7f
+ dc.b $14
+ dc.b $14
+ dc.b $14
+ dc.b 0
+ dc.b 0
+*
+ dc.b $08 Character = '$'
+ dc.b $3f
+ dc.b $48
+ dc.b $48
+ dc.b $3e
+ dc.b $09
+ dc.b $09
+ dc.b $7e
+ dc.b $08
+ dc.b 0
+ dc.b 0
+*
+ dc.b $20 Character = '%'
+ dc.b $51
+ dc.b %00100010
+ dc.b $04
+ dc.b $08
+ dc.b $10
+ dc.b %00100010
+ dc.b %01000101
+ dc.b $02
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00111000 Character = '&'
+ dc.b %01000100
+ dc.b %01000100
+ dc.b %00101000
+ dc.b $10
+ dc.b %00101001
+ dc.b %01000110
+ dc.b %01000110
+ dc.b %00111001
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00001100 Character = '''
+ dc.b %00001100
+ dc.b $08
+ dc.b $10
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+*
+ dc.b $04 Character = '('
+ dc.b $08
+ dc.b $10
+ dc.b $10
+ dc.b $10
+ dc.b $10
+ dc.b $10
+ dc.b $08
+ dc.b $04
+ dc.b 0
+ dc.b 0
+*
+ dc.b $10 Character = ')'
+ dc.b $08
+ dc.b $04
+ dc.b $04
+ dc.b $04
+ dc.b $04
+ dc.b $04
+ dc.b $08
+ dc.b $10
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = '*'
+ dc.b $08
+ dc.b %01001001
+ dc.b %00101010
+ dc.b $7f
+ dc.b %00101010
+ dc.b %01001001
+ dc.b $08
+ dc.b 0
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = '+'
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $7f
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b 0
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = ','
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b %00011000
+ dc.b %00011000
+ dc.b $10
+ dc.b $20
+*
+ dc.b 0 Character = '-'
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b $3e
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'fred'
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b %00011000
+ dc.b %00011000
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = '/'
+ dc.b $01
+ dc.b $02
+ dc.b $04
+ dc.b $08
+ dc.b $10
+ dc.b $20
+ dc.b $40
+ dc.b 0
+ dc.b 0
+ dc.b 0
+*
+ dc.b $3e Character = '0'
+ dc.b %01000001
+ dc.b %01000011
+ dc.b %01000101
+ dc.b %01001001
+ dc.b $51
+ dc.b %01100001
+ dc.b %01000001
+ dc.b $3e
+ dc.b 0
+ dc.b 0
+*
+ dc.b $08 Character = '1'
+ dc.b %00011000
+ dc.b %00101000
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $3e
+ dc.b 0
+ dc.b 0
+*
+ dc.b $3e Character = '2'
+ dc.b %01000001
+ dc.b $01
+ dc.b $02
+ dc.b %00011100
+ dc.b $20
+ dc.b $40
+ dc.b $40
+ dc.b $7f
+ dc.b 0
+ dc.b 0
+*
+ dc.b $3e Character = '3'
+ dc.b %01000001
+ dc.b $01
+ dc.b $01
+ dc.b %00011110
+ dc.b $01
+ dc.b $01
+ dc.b %01000001
+ dc.b $3e
+ dc.b 0
+ dc.b 0
+*
+ dc.b $02 Character = '4'
+ dc.b %00000110
+ dc.b %00001010
+ dc.b %00010010
+ dc.b %00100010
+ dc.b %01000010
+ dc.b $7f
+ dc.b $02
+ dc.b $02
+ dc.b 0
+ dc.b 0
+*
+ dc.b $7f Character = '5'
+ dc.b $40
+ dc.b $40
+ dc.b %01111100
+ dc.b $02
+ dc.b $01
+ dc.b $01
+ dc.b %01000010
+ dc.b %00111100
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00011110 Character = '6'
+ dc.b $20
+ dc.b $40
+ dc.b $40
+ dc.b $7e
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b $3e
+ dc.b 0
+ dc.b 0
+*
+ dc.b $7f Character = '7'
+ dc.b %01000001
+ dc.b $02
+ dc.b $04
+ dc.b $08
+ dc.b $10
+ dc.b $10
+ dc.b $10
+ dc.b $10
+ dc.b 0
+ dc.b 0
+*
+ dc.b $3e Character = '8'
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b $3e
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b $3e
+ dc.b 0
+ dc.b 0
+*
+ dc.b $3e Character = '9'
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b $3f
+ dc.b $01
+ dc.b $01
+ dc.b $02
+ dc.b %00111100
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = ':'
+ dc.b 0
+ dc.b 0
+ dc.b %00011000
+ dc.b %00011000
+ dc.b 0
+ dc.b 0
+ dc.b %00011000
+ dc.b %00011000
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = ';'
+ dc.b 0
+ dc.b 0
+ dc.b %00011000
+ dc.b %00011000
+ dc.b 0
+ dc.b 0
+ dc.b %00011000
+ dc.b %00011000
+ dc.b $10
+ dc.b $20
+*
+ dc.b $04 Character = '<'
+ dc.b $08
+ dc.b $10
+ dc.b $20
+ dc.b $40
+ dc.b $20
+ dc.b $10
+ dc.b $08
+ dc.b $04
+ dc.b 0
+ dc.b 0
+*
+ dc.b $00000000 Character = '='
+ dc.b $00000000
+ dc.b $00000000
+ dc.b $3e
+ dc.b $00000000
+ dc.b $3e
+ dc.b 0
+ dc.b $00000000
+ dc.b $00000000
+ dc.b $00000000
+ dc.b $00000000 
+*
+ dc.b $10 Character = '>'
+ dc.b $08
+ dc.b $04
+ dc.b $02
+ dc.b $01
+ dc.b $02
+ dc.b $04
+ dc.b $08
+ dc.b $10
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00011110 Character = '?'
+ dc.b %00100001
+ dc.b %00100001
+ dc.b $01
+ dc.b %00000110
+ dc.b $08
+ dc.b $08
+ dc.b 0
+ dc.b $08
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00011110 Character = '@'
+ dc.b %00100001
+ dc.b %01001101
+ dc.b %01010101
+ dc.b %01010101
+ dc.b %01011110
+ dc.b $40
+ dc.b $20
+ dc.b %00011110
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00011100 Character = 'A'
+ dc.b %00100010
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b $7f
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b 0
+ dc.b 0
+*
+ dc.b $7e Character = 'B'
+ dc.b %00100001
+ dc.b %00100001
+ dc.b %00100001
+ dc.b $3e
+ dc.b %00100001
+ dc.b %00100001
+ dc.b %00100001
+ dc.b $7e
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00011110 Character = 'C'
+ dc.b %00100001
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b %00100001
+ dc.b %00011110
+ dc.b 0
+ dc.b 0
+*
+ dc.b %01111100 Character = 'D'
+ dc.b %01000010
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000010
+ dc.b %01111100
+ dc.b 0
+ dc.b 0
+*
+ dc.b $7f Character = 'E'
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b %01111000
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b $7f
+ dc.b 0
+ dc.b 0
+*
+ dc.b $7f Character = 'F'
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b %01111000
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00011110 Character = 'G'
+ dc.b %00100001
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b %01001111
+ dc.b %01000001
+ dc.b %00100001
+ dc.b %00011110
+ dc.b 0
+ dc.b 0
+*
+ dc.b %01000001 Character = 'H'
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b $7f
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b 0
+ dc.b 0
+*
+ dc.b $3e Character = 'I'
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $3e
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00011111 Character = 'J'
+ dc.b $04
+ dc.b $04
+ dc.b $04
+ dc.b $04
+ dc.b $04
+ dc.b $04
+ dc.b %01000100
+ dc.b %00111000
+ dc.b 0
+ dc.b 0
+*
+ dc.b %01000001 Character = 'K'
+ dc.b %01000010
+ dc.b %01000100
+ dc.b $48
+ dc.b %01010000
+ dc.b %01101000
+ dc.b %01000100
+ dc.b %01000010
+ dc.b %01000001
+ dc.b 0
+ dc.b 0
+*
+ dc.b $40 Character = 'L'
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b $7f
+ dc.b 0
+ dc.b 0
+*
+ dc.b %01000001 Character = 'M'
+ dc.b %01100011
+ dc.b %01010101
+ dc.b %01001001
+ dc.b %01001001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b 0
+ dc.b 0
+*
+ dc.b %01000001 Character = 'N'
+ dc.b %01100001
+ dc.b $51
+ dc.b %01001001
+ dc.b %01000101
+ dc.b %01000011
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00011100 Character = 'O'
+ dc.b %00100010
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %00100010
+ dc.b %00011100
+ dc.b 0
+ dc.b 0
+*
+ dc.b $7e Character = 'P'
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b $7e
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00011100 Character = 'Q'
+ dc.b %00100010
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01001001
+ dc.b %01000101
+ dc.b %00100010
+ dc.b %00011101
+ dc.b 0
+ dc.b 0
+*
+ dc.b $7e Character = 'R'
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b $7e
+ dc.b $48
+ dc.b %01000100
+ dc.b %01000010
+ dc.b %01000001
+ dc.b 0
+ dc.b 0
+*
+ dc.b $3e Character = 'S'
+ dc.b %01000001
+ dc.b $40
+ dc.b $40
+ dc.b $3e
+ dc.b $01
+ dc.b $01
+ dc.b %01000001
+ dc.b $3e
+ dc.b 0
+ dc.b 0
+*
+ dc.b $7f Character = 'T'
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b 0
+ dc.b 0
+*
+ dc.b %01000001 Character = 'U'
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b $3e
+ dc.b 0
+ dc.b 0
+*
+ dc.b %01000001 Character = 'V'
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %00100010
+ dc.b %00100010
+ dc.b $14
+ dc.b $14
+ dc.b $08
+ dc.b $08
+ dc.b 0
+ dc.b 0
+*
+ dc.b %01000001 Character = 'W'
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01001001
+ dc.b %01001001
+ dc.b %01010101
+ dc.b %01100011
+ dc.b %01000001
+ dc.b 0
+ dc.b 0
+*
+ dc.b %01000001 Character = 'X'
+ dc.b %01000001
+ dc.b %00100010
+ dc.b $14
+ dc.b $08
+ dc.b $14
+ dc.b %00100010
+ dc.b %01000001
+ dc.b %01000001
+ dc.b 0
+ dc.b 0
+*
+ dc.b %01000001 Character = 'Y'
+ dc.b %01000001
+ dc.b %00100010
+ dc.b $14
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b 0
+ dc.b 0
+*
+ dc.b $7f Character = 'Z'
+ dc.b $01
+ dc.b $02
+ dc.b $04
+ dc.b $08
+ dc.b $10
+ dc.b $20
+ dc.b $40
+ dc.b $7f
+ dc.b 0
+ dc.b 0
+*
+ dc.b $3e Character = '['
+ dc.b $20
+ dc.b $20
+ dc.b $20
+ dc.b $20
+ dc.b $20
+ dc.b $20
+ dc.b $20
+ dc.b $3e
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = '\'
+ dc.b $40
+ dc.b $20
+ dc.b $10
+ dc.b $08
+ dc.b $04
+ dc.b $02
+ dc.b $01
+ dc.b 0
+ dc.b 0
+ dc.b 0
+*
+ dc.b $3e Character = ']'
+ dc.b $02
+ dc.b $02
+ dc.b $02
+ dc.b $02
+ dc.b $02
+ dc.b $02
+ dc.b $02
+ dc.b $3e
+ dc.b 0
+ dc.b 0
+*
+ dc.b $08 Character = '^'
+ dc.b %00011100
+ dc.b %00101010
+ dc.b %01001001
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = '_'
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b $3e
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00011000 Character = '`'
+ dc.b %00011000
+ dc.b $08
+ dc.b $04
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'a'
+ dc.b 0
+ dc.b 0
+ dc.b %00111100
+ dc.b $02
+ dc.b $3e
+ dc.b %01000010
+ dc.b %01000010
+ dc.b %00111101
+ dc.b 0
+ dc.b 0
+*
+ dc.b $40 Character = 'b'
+ dc.b $40
+ dc.b $40
+ dc.b %01011100
+ dc.b %01100010
+ dc.b %01000010
+ dc.b %01000010
+ dc.b %01100010
+ dc.b %01011100
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'c'
+ dc.b 0
+ dc.b 0
+ dc.b %00111100
+ dc.b %01000010
+ dc.b $40
+ dc.b $40
+ dc.b %01000010
+ dc.b %00111100
+ dc.b 0
+ dc.b 0
+*
+ dc.b $02 Character = 'd'
+ dc.b $02
+ dc.b $02
+ dc.b %00111010
+ dc.b %01000110
+ dc.b %01000010
+ dc.b %01000010
+ dc.b %01000110
+ dc.b %00111010
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'e'
+ dc.b 0
+ dc.b 0
+ dc.b %00111100
+ dc.b %01000010
+ dc.b $7e
+ dc.b $40
+ dc.b $40
+ dc.b %00111100
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00001100 Character = 'f'
+ dc.b %00010010
+ dc.b $10
+ dc.b $10
+ dc.b %01111100
+ dc.b $10
+ dc.b $10
+ dc.b $10
+ dc.b $10
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'g'
+ dc.b 0
+ dc.b 0
+ dc.b %00111010
+ dc.b %01000110
+ dc.b %01000010
+ dc.b %01000110
+ dc.b %00111010
+ dc.b $02
+ dc.b %01000010
+ dc.b %00111100
+*
+ dc.b $40 Character = 'h'
+ dc.b $40
+ dc.b $40
+ dc.b %01011100
+ dc.b %01100010
+ dc.b %01000010
+ dc.b %01000010
+ dc.b %01000010
+ dc.b %01000010
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'i'
+ dc.b $08
+ dc.b 0
+ dc.b %00011000
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b %00011100
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'j'
+ dc.b $02
+ dc.b 0
+ dc.b %00000110
+ dc.b $02
+ dc.b $02
+ dc.b $02
+ dc.b $02
+ dc.b $02
+ dc.b %00100010
+ dc.b %00011100
+*
+ dc.b $40 Character = 'k'
+ dc.b $40
+ dc.b $40
+ dc.b %01000100
+ dc.b $48
+ dc.b %01010000
+ dc.b %01101000
+ dc.b %01000100
+ dc.b %01000010
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00011000 Character = 'l'
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b %00011100
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'm'
+ dc.b 0
+ dc.b 0
+ dc.b %01110110
+ dc.b %01001001
+ dc.b %01001001
+ dc.b %01001001
+ dc.b %01001001
+ dc.b %01001001
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'n'
+ dc.b 0
+ dc.b 0
+ dc.b %01011100
+ dc.b %01100010
+ dc.b %01000010
+ dc.b %01000010
+ dc.b %01000010
+ dc.b %01000010
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'o'
+ dc.b 0
+ dc.b 0
+ dc.b $3e
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b $3e
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'p'
+ dc.b 0
+ dc.b 0
+ dc.b %01011100
+ dc.b %01100010
+ dc.b %01000010
+ dc.b %01100010
+ dc.b %01011100
+ dc.b $40
+ dc.b $40
+ dc.b $40
+*
+ dc.b 0 Character = 'q'
+ dc.b 0
+ dc.b 0
+ dc.b %00111010
+ dc.b %01000110
+ dc.b %01000010
+ dc.b %01000110
+ dc.b %00111010
+ dc.b $02
+ dc.b $02
+ dc.b %00000011
+*
+ dc.b 0 Character = 'r'
+ dc.b 0
+ dc.b 0
+ dc.b %01011100
+ dc.b %01100010
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b $40
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 's'
+ dc.b 0
+ dc.b 0
+ dc.b %00111100
+ dc.b %01000010
+ dc.b %00110000
+ dc.b %00001100
+ dc.b %01000010
+ dc.b %00111100
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 't'
+ dc.b $10
+ dc.b $10
+ dc.b %01111100
+ dc.b $10
+ dc.b $10
+ dc.b $10
+ dc.b %00010010
+ dc.b %00001100
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'u'
+ dc.b 0
+ dc.b 0
+ dc.b %01000010
+ dc.b %01000010
+ dc.b %01000010
+ dc.b %01000010
+ dc.b %01000110
+ dc.b %00111010
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'v'
+ dc.b 0
+ dc.b 0
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %00100010
+ dc.b $14
+ dc.b $08
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'w'
+ dc.b 0
+ dc.b 0
+ dc.b %01000001
+ dc.b %01001001
+ dc.b %01001001
+ dc.b %01001001
+ dc.b %01001001
+ dc.b %00110110
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'x'
+ dc.b 0
+ dc.b 0
+ dc.b %01000010
+ dc.b $24
+ dc.b %00011000
+ dc.b %00011000
+ dc.b $24
+ dc.b %01000010
+ dc.b 0
+ dc.b 0
+*
+ dc.b 0 Character = 'y'
+ dc.b 0
+ dc.b 0
+ dc.b %01000010
+ dc.b %01000010
+ dc.b %01000010
+ dc.b %01000110
+ dc.b %00111010
+ dc.b $02
+ dc.b %01000010
+ dc.b %00111100
+*
+ dc.b 0 Character = 'z'
+ dc.b 0
+ dc.b 0
+ dc.b $7e
+ dc.b $04
+ dc.b $08
+ dc.b $10
+ dc.b $20
+ dc.b $7e
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00001100 Character = '{'
+ dc.b $10
+ dc.b $10
+ dc.b $10
+ dc.b $20
+ dc.b $10
+ dc.b $10
+ dc.b $10
+ dc.b %00001100
+ dc.b 0
+ dc.b 0
+*
+ dc.b $08 Character = '|'
+ dc.b $08
+ dc.b $08
+ dc.b 0
+ dc.b $08
+ dc.b $08
+ dc.b $08
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00011000 Character = '}'
+ dc.b $04
+ dc.b $04
+ dc.b $04
+ dc.b $02
+ dc.b $04
+ dc.b $04
+ dc.b $04
+ dc.b %00011000
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00110000 Character = '~'
+ dc.b %01001001
+ dc.b %00000110
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b 0
+*
+ dc.b %00101010 Character = ' '
+ dc.b %01010101
+ dc.b %00101010
+ dc.b %01010101
+ dc.b %00101010
+ dc.b %01010101
+ dc.b %00101010
+ dc.b %01010101
+ dc.b %00101010
+ dc.b 0
+ dc.b 0
+*
+ LIST  
+*
+ dc.b $7f Cursor type 1
+ dc.b $7f
+ dc.b $7f
+ dc.b $7f
+ dc.b $7f
+ dc.b $7f
+ dc.b $7f
+ dc.b $7f
+ dc.b $7f
+ dc.b 0
+ dc.b 0
+*
+ dc.b %01100011 Cursor type 2
+ dc.b %01000001
+ dc.b %01000001
+ dc.b 0
+ dc.b 0
+ dc.b 0
+ dc.b %01000001
+ dc.b %01000001
+ dc.b %01100011
+ dc.b 0
+ dc.b 0
+*

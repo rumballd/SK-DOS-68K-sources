@@ -1,0 +1,181 @@
+************************************************
+*          Equate file for MONK ver 2.1        *
+*          ----------------------------        *
+* This file contains the hardware equates for  *
+* MONK ver 2.1. It should be 'included' in     *
+* each module of the program.                  *
+************************************************
+*
+**************************************
+* Base addresses of the major blocks *
+**************************************
+prom     equ     $000C0000    Prom base address.
+ram      equ     $0007fc00    Monk scratch ram base address.
+io       equ     $000ff000    Input/output base address.
+*
+*************************************************
+* Base addresses of buffers and jump tables etc *
+*************************************************
+s_stack  equ     $0007fdfe    Initial system stack.
+u_stack  equ     $0007fdfe    Initial user stack.
+*
+j_table  equ     $0007fe00    Jump table base address.
+*
+cpmbase  equ     $00007000    CP/M 68k scratch ram.
+*
+text_bas equ     $00070000    text screen base address
+text_siz equ     $00004b00    240lines * (640pixels / 8pixels per byte          )
+grph_bas equ     $00074b00    graphics screen base address
+grph_siz equ     $00009600    480lines * (640pixels / 8pixels per byte          )
+*
+rbuff    equ     $00028000    disk i/o read buffer
+wbuff    equ     $00029400    disk i/o write buffer
+wrbuff   equ     $0002a800    wini i/o read buffer
+wwbuff   equ     $0002bc00    wini i/o write buffer
+*
+rd_base  equ     $0002d000    ramdisk base address
+ed_base  equ     $000e0000    epromdisc base address
+*
+*************************************
+* Peripheral device base addresses. *
+*************************************
+rms      equ     $000ffe00    RMS registers base address.
+acia     equ     $000ff001    Acia base address.
+rtc      equ     $000f0001    Real Time Clock Base Address
+pia0     equ     $000ff101    Pia0 base address.
+pia1     equ     $000ff201    Pia1 base address. (SCSI).
+sound    equ     $000ff301    Sound generator base address.
+fdc      equ     $000f4001    Floppy dics controller base address.
+*
+**************************************
+* RMS register equates 68486 & 68487 *
+**************************************
+mem_map      equ $00      RMS memory map register.
+mem_type     equ $24      Memory type and banks.
+*
+display_mode equ $01      List mode + lines/char row + bits/pel
+video_op     equ $25      Video interlace + format.
+sync_mode    equ $26      Sync mode and output.
+int_stat     equ $02      Interrupt status.
+*
+border_col   equ $03      Wrap mode + mapa + video on + border colour.
+vector_map   equ $06      Vector mapping register.
+*
+screen_base  equ $28      Virtual screen base address.
+vert_scroll  equ $07      Vertical scroll register.
+hori_scroll  equ $08      Horizontal scroll register.
+*
+drcs_tsa     equ $0a      DRCS definition table start.
+to_dsa       equ $0c      True object table start.
+fo_tsa       equ $0e      Fixed object table start.
+collision    equ $18      Collison reports.
+to_free      equ $04      True object free register.
+*
+rt_output    equ $1c      Real time output.
+rt_input     equ $20      Real time input.
+*
+vert_off     equ $2c      Vertical offset register.
+hori_off     equ $30      Horizontal offset register.
+screen_size  equ $34      Virtual screen size.
+screen_width equ $38      Virtual screen width.
+*
+clut         equ $40      Colour look up tables.
+*
+********************************
+* ACIA register equates  68681 *
+********************************
+mode0    equ     00           Mode register A.
+stat0    equ     02           Status reg A + Clock select reg.
+com0     equ     04           Command reg A.
+data0    equ     06           Xmit and recve reg.
+*
+mode1    equ     16           Mode register B.
+stat1    equ     18           Status reg B + Clock select reg.
+com1     equ     20           Command reg B.
+data1    equ     22           Xmit and recve reg.
+*
+ipcr     equ     08           Input change reg + Aux control reg.
+isr      equ     10           Interrupt mask + interrupt status.
+ivr      equ     24           Interrupt vector register.
+*
+ctur0    equ     12           Counter timer upper register.
+ctlr0    equ     14           Counter timer lower register.
+*
+sysreg   equ     26           Input port + output port config reg.
+clrreg   equ     28           set (reset) output port bits + start cou          n
+setreg   equ     30           reset (set) output port bits + stop coun          t
+*
+**************************
+* ACIA parr port equates *
+**************************
+drv      equ     $80          bit7=drive select bit.
+dden     equ     $40          bit6=drive density bit.
+side     equ     $20          bit5=drive side select.
+remote   equ     $10          bit4=local/remote video switch.
+program  equ     $08          bit3=Program enable bit.
+bell     equ     $04          bit2=Bell enable.
+*
+init_spare equ   2            Disk change flag.    switch0
+init_ip  equ     3            Initial input port.  switch1
+init_op  equ     4            Initial output port. switch2
+a_boot   equ     5            Auto boot switch.    switch3
+*
+*******************************
+* PIA register equates  68230 *
+*******************************
+pgcr     equ     $00          Port general control register.
+pacr     equ     $0c          Port a control register.
+pbcr     equ     $0e          Port b control register.
+*
+paddr    equ     $04          Port a data direction register.
+pbddr    equ     $06          Port b data direction register.
+*
+padr     equ     $10          Port a data register.
+pbdr     equ     $12          Port b data register.
+*
+psr      equ     $1a          Port status register.
+*
+************************************
+* Floppy disc register and command *
+* equates.    WD1772               *
+************************************
+fdccom   equ     fdc          fdc command register.
+fdctrk   equ     fdc+2        fdc track register.
+fdcsec   equ     fdc+4        fdc sector register.
+fdcdat   equ     fdc+6        fdc data register.
+*
+stp      equ     $03          Drive stepping rate.
+*
+rstcmd   equ     $00+stp      Restore command.
+seekcmd  equ     $10+stp      Seek command.
+readcmd  equ     $90          Read command.
+writecmd equ     $b0          Write command.
+*
+busy     equ     0            Fdc busy.
+drq      equ     1            Data request.
+*
+*********************************
+* SCSI pia register equates and *
+* signal definitions.           *
+*********************************
+w_mode   equ     $00          pia mode register
+w_dircn  equ     $04          pia data direction register a
+w_setup  equ     $0c          pia port a submode control register
+w_data   equ     $10          pia port a data register
+w_cntrl  equ     $18          pia port c data (SCSI control lines)
+w_status equ     $1a          pia port status register (ack + req)
+* control register bit equates
+w_busy   equ     0            SCSI busy line
+w_cd     equ     1            SCSI command/data line
+w_mess   equ     2            SCSI message line
+w_io     equ     3            SCSI input/output line
+w_sel    equ     4            SCSI select line
+w_reset  equ     7            SCSI reset line
+* status register equates
+w_dreq   equ     0            SCSI req line edge
+w_req    equ     4            SCSI req line level
+w_dack   equ     1            SCSI ack line edge
+w_ack    equ     5            SCSI ack line level
+*
+
+*

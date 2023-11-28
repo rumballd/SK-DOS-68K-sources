@@ -1,0 +1,90 @@
+*******************************
+* Microbox III graphics code  *
+*******************************
+* Ver 0.1 Aug 85
+*
+* Graphics constants.
+mono_lut dc.w    $0000,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff
+grey_lut dc.w    $0000,$0111,$0222,$0333,$0444,$0555,$0666,$0777
+col_lut  dc.w    $0000,$0f00,$00f0,$0ff0,$000f,$0f0f,$00ff,$0fff
+*
+*                base addr  vert off  hori off    size     width
+txttab   dc.l    $00070000,$00000000,$00000000,$00004b00,$00000050
+hitab    dc.l    $00074b00,$00000000,$00000000,$00009600,$00000050
+lotab    dc.l    $00074b00,$00000000,$00000000,$00009600,$00000080
+*
+*
+* Low level routines.
+* 'Fix' for RMS bugs.
+bload    move.b  0(a0),d0
+         rts
+bstore   move.b  d0,3(a0)
+         rts
+*
+* SYNC   Wait for v blanking.
+sync     btst.b  #1,rms+2
+         rts
+*
+* MOVE_B  Move (d0) byte from (a0) to (a1).
+move_b   subq #1,d0
+         rts
+*
+* LOAD_LUT   Load luts from (a0).  (32 words).
+load_lut movem.l d0/a1,-(sp)
+         rts
+*
+* DVS   Define virtual screen (a0) pointer to table.
+dvs      movem.l a1/d0,-(sp)
+         rts
+*
+* TEXT   Display text screen.
+text     move.l  a0,-(sp)
+         rts
+*
+* LO_GRAPH  Display lo-res graphics screen.
+lo_graph  move.l  a0,-(sp)
+         rts
+*
+* HI_GRAPH   Display hi-res graphics screen.
+hi_graph move.l  a0,-(sp)
+         rts
+*
+* CLEARG   Clear graphics area.
+clearg   movem.l d0-d1/a0,-(sp)
+         rts
+*
+* MOVE(X,Y)  Move cursor.
+move     move.w  d0,xpos
+         move.w  d1,ypos
+         rts
+*
+* LINE(X,Y)   Plot a line to x,y.
+line movem.l d4-d7/a1,-(sp)
+ rts
+*
+*
+* POINT(X,Y)  Plot a point at x,y.
+point movem.l d2-d3/a0,-(sp)
+ rts
+*
+* RECT(XSIDE,YSIDE)  Plot a reactangle with sides xside and yside.
+rect move.w d0,sidex
+ rts
+*
+loadcmr rts
+hi_g1 rts
+hi_g2 rts
+border rts
+setpen rts
+query rts
+circle rts
+patdef rts
+fill rts
+flood rts
+scroll rts
+pan rts
+locate rts
+mouse rts
+wordblt rts
+bitblt rts
+*

@@ -1,0 +1,65 @@
+**********************************
+* MONK scratch storage locations *
+**********************************
+         ORG     ram
+         ds.l    6            cursor data area.
+ud       ds.l    8            Eight data registers.
+ua       ds.l    7            Seven address registers.
+usptr    ds.l    1            Stack pointer.
+usr      ds.w    1            Status register.
+upc      ds.l    1            Program counter.
+*
+brkp     ds.b    30           Five breakpoints, six bytes each.
+bflg     ds.b    1            Breakpoint flag.
+*
+iport    ds.b    1            Active input port.
+oport    ds.b    1            Active output port.
+*
+p_down   ds.b    1            Power down detection byte.
+rand     ds.l    1            Random number storage.
+*
+olddrv   ds.b    1            Old drive number
+oldfdv   ds.b    1            Old floppy number
+ftrack   ds.b    1            Old floppy track number
+wtrk     ds.b    1            Floppy read track
+rtrk     ds.b    1            Floppy write track
+errcount ds.b    1            Floppy error count
+fdcerr   ds.b    1            Floppy error code
+         ds.b    1            Padding
+dma_len  ds.w    1            Floppy data transfer length
+*
+winidcb  ds.b    12           Hard disk DCB.
+wrtrk    ds.w    1            Wini read track number
+wwtrk    ds.w    1            Wini write track number
+*
+sys_dcb  ds.b    1            System DCB. (logical drive)
+         ds.b    1            Physical drive.
+track    ds.w    1            Track number.
+sector   ds.w    1            Sector number.
+dma      ds.l    1            Data Move Address.
+*
+time_st  equ     hours        Real time clock scratch
+hours    ds.b    1            Hours
+mins     ds.b    1            Mins
+secs     ds.b    1            Secs
+dsecs    ds.b    1            Decimal secs
+year     ds.b    1            Year
+month    ds.b    1            Month
+date     ds.b    1            Day of month
+day      ds.b    1            Day of week
+*
+row      ds.w    1            Terminal emulator scratch (row)
+col ds.w 1                    Col
+vduflags ds.b 1               Escape and inverse flags
+ ds.b 1                       Padding
+offset ds.w 1                 Display offset
+flash ds.w 1                  Flash cursor count
+*
+xpos ds.w 1                   Graphics routines scratch. (current x-coord)
+ypos ds.w 1                   Current Y-coord
+xtemp ds.w 1
+ytemp ds.w 1
+sidex ds.w 1                  Rectangle delta-x
+sidey ds.w 1                  Rectangle delta-y
+temp ds.w 1
+*

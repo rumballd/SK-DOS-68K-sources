@@ -1,0 +1,167 @@
+* SK*DOS / 68K EQUATES FOR USER PROGRAMS
+        NOLIST
+
+* DATA AREA EQUATES (RELATIVE TO A6)
+
+BACKSC  EQU   736      Backspace character ($08)
+BAUDRT  EQU   3329     Baud rate for serial ports (/100)
+BREAKA  EQU   762      Break (Escape) address (long word)
+BSECHO  EQU   743      Backspace echo ($08)
+CDAY    EQU   751      Current date - day
+CMFLAG  EQU   793      Command flag
+CMONTH  EQU   750      Current date - month
+COMTAB  EQU   754      Pointer to command table (long word)
+CURRCH  EQU   766      Last character read from buffer
+CYEAR   EQU   752      Current date - year
+DELETC  EQU   737      Delete character ($18)
+LINCTR  EQU   3327     Line-on-page counter (for pause)
+DEVIN   EQU   3274     Current input device number (0)
+DEVOUT  EQU   3275     Current output device number (0)
+DEVERR  EQU   3276     Current error device number (1)
+DEVTAB  EQU   3278     I/O device table (640 bytes)
+DOSORG  EQU   838      Absolute ORG address of SK*DOS
+ECHOFL  EQU   800      Input echo flag
+ENDLNC  EQU   738      End of line character ($3A)
+EOFILC  EQU   3330     End-of-file character ($1A)
+ERRTYP  EQU   782      Error type
+ESCAPC  EQU   746      Escape char ($1B)
+EXECAD  EQU   776      ML execution address (long word)
+EXECFL  EQU   774      Execution address flag
+FIADDR  EQU   788      File input address vector (long word)
+FNCASE  EQU   801      File Name case flag
+FOADDR  EQU   784      File output address vector (long word)
+LASTRM  EQU   753      Last terminator
+LINBUF  EQU   608      Line buffer (128 bytes)
+LPOINT  EQU   758      Pointer to line buffer (long word)
+MAXDRV  EQU   802      Maximum drive number
+MEMEND  EQU   796      Last usable memory address (long word)
+NULLWT  EQU   3324     Null wait constant
+OCOLUM  EQU   3328     Current output column
+OFFSET  EQU   770      Offset load address (long word)
+PAUSEB  EQU   3326     Output pause control byte
+PLINES  EQU   3322     Number of printed lines per page
+PREVCH  EQU   767      Previous character read
+PWIDTH  EQU   3323     Page column width
+REPEAC  EQU   749      Repeat character ($01)
+SEQNUM  EQU   806      Sequence number
+SLINES  EQU   3325     Number of skipped lines between pages
+SPACOM  EQU   739      Default write space compression (0=ON,$FF=OFF)
+SPECIO  EQU   792      Special I/O Indicator
+SYSDIR  EQU   744      System directory
+SYSTDR  EQU   747      System default drive
+TTAB    EQU   742      Tab (not currently used)
+USRFCB  EQU     0      User FCB (608 bytes)
+WORKDR  EQU   748      Working default drive
+WRKDIR  EQU   745      Work drive directory
+XOFFC   EQU   3331     X-OFF character (0)
+XONC    EQU   3332     X-ON character (0)
+
+* NON-DISK FUNCTIONS
+
+CLASFY  EQU  $A02E     Classify alphanumeric characters
+DECIN   EQU  $A030     Input decimal number
+DEFEXT  EQU  $A024     Default extension
+DIREST  EQU  $A026     Floppy disk restore
+DISEEK  EQU  $A027     Floppy disk seek
+EXECSD  EQU  $A01F     Execute a SK*DOS command
+FINDEV  EQU  $A012     Find device number from device name
+FLUSHT  EQU  $A044     Flush Type-ahead buffer, if any.
+FNPRNT  EQU  $A045     Print file-name A4 points to
+GETCH   EQU  $A029     Get input character with echo (7 bits)
+GETDNT  EQU  $A03F     Get date (D5) and time (D6)
+GETNAM  EQU  $A023     Get file name into FCB
+GETNXT  EQU  $A02D     Get next character from buffer
+HEXIN   EQU  $A02F     Input hexadecimal number
+ICNTRL  EQU  $A028     Input control
+INLINE  EQU  $A02C     Input into line buffer
+INNOEC  EQU  $A02A     Get input character without echo (8 bits) (with TA)
+INNOE1  EQU  $A043     Get input character without echo (bypass TA)
+INTDIS  EQU  $A040     Disable interrupts
+INTENA  EQU  $A041     Re-enable interrupts to previous status
+LOADML  EQU  $A022     Load open machine language file
+OCNTRL  EQU  $A032     Output control
+OSTATS  EQU  $A03D     Check output port status
+OUT10D  EQU  $A039     Output 10 decimal digits
+OUT2H   EQU  $A03A     Output 2 hex digits
+OUT4H   EQU  $A03B     Output 4 hex digits
+OUT5D   EQU  $A038     Output 5 decimal digits
+OUT8H   EQU  $A03C     Output 8 hex digits
+PCRLF   EQU  $A034     Print CR/LF
+PERROR  EQU  $A037     Print error code
+PNSTRN  EQU  $A036     Print string (Without CR/LF)
+SEENXT  EQU  $A03E     See (preview) next character in buffer
+PSTRNG  EQU  $A035     Print CR/LF and string
+PUTCH   EQU  $A033     Output character
+RENTER  EQU  $A025     Re-enter SK*DOS
+RESIO   EQU  $A020     Reset I/O pointers
+RESTRP  EQU  $A021     Reset trap vectors
+STATUS  EQU  $A02B     Check keyboard for character (with TA)
+STATS1  EQU  $A042     Check keyboard for character (bypass TA)
+TOUPPR  EQU  $A031     Convert lower case IN D5 to upper
+VPOINT  EQU  $A000     Point to SK*DOS variable area
+WARMST  EQU  $A01E     Warm start
+
+* DISK FUNCTIONS
+
+DIROPN  EQU  $A00B     Open directory file
+DSREAD  EQU  $A00D     Read directory or system information sector
+DSWRIT  EQU  $A00E     Write directory or SIS entry
+FCLOSE  EQU  $A008     Close file
+FCSCLS  EQU  $A009     Close all open files
+FCSINI  EQU  $A01B     Initialize File Control System
+FDELET  EQU  $A00F     Delete a file
+FDRIVE  EQU  $A01A     Find next drive number
+FOPENR  EQU  $A005     Open a file for read
+FOPENU  EQU  $A007     Open a file for update
+FOPENW  EQU  $A006     Open a file for write
+FRBACK  EQU  $A015     Backup to previous sector
+FREAD   EQU  $A001     Read the next byte from file
+FRENAM  EQU  $A010     Rename a file
+FREWIN  EQU  $A00A     Rewind file
+FRGET   EQU  $A016     Read a random byte
+FRPUT   EQU  $A017     Write a random byte
+FRRECD  EQU  $A014     Select a specified random sector
+FSKIP   EQU  $A011     Skip current sector
+FWRITE  EQU  $A002     Write the next byte to the file
+SISOPN  EQU  $A00C     Open system information sector
+SREAD   EQU  $A01C     Read a single sector
+SWRITE  EQU  $A01D     Write a single sector
+
+* FILE CONTROL BLOCK EQUATES
+
+FCBERR  EQU  1         Error code
+FCBRW   EQU  2         Read=1 write=2 update=3 or $83
+FCBDRV  EQU  3         Logical Drive number
+FCBNAM  EQU  4         File name (8 chars)
+FCBEXT  EQU  12        Extension (3 chars)
+FCBATT  EQU  15        File attributes (bits 4-7)
+FCBFTR  EQU  18        First track of file
+FCBFSE  EQU  19        First sector of file
+FCBLTR  EQU  22        Last track of file
+FCBLSE  EQU  23        Last sector of file
+FCBSIZ  EQU  24        File size in sectors (2 bytes)
+FCBRAN  EQU  26        Random indicator (0=seq)
+FCBTIM  EQU  27        Time or Sequence No.
+FCBMON  EQU  28        Month
+FCBDAY  EQU  29        Date of file creation or update
+FCBYR   EQU  30        Year
+FCBCTR  EQU  34        Current track in buffer
+FCBCSE  EQU  35        Current sector in buffer
+FCBNMB  EQU  36        Temp name buffer (11 chars w. ext)
+FCBDPT  EQU  49        Data pointer to next byte (4-255)
+FCBRIN  EQU  51        Random file index pointer
+FCBNMS  EQU  52        2nd name buffer (11 chars w. ext)
+FCBSCF  EQU  59        Space compr. flag (0=compr, FF=no)
+FCBSPT  EQU  60        Sectors per track for random
+FCBUPD  EQU  61        Random update flag
+FCBTMP  EQU  62        Temp storage for random
+FCBLST  EQU  68        Pointer to next open FCB
+FCBPHY  EQU  72        Physical drive number
+FCBDIT  EQU  74        Directory track
+FCBDIS  EQU  75        Directory sector
+FCBDIB  EQU  77        Directory starting byte index
+FCBCRN  EQU  78        Current record number (2 bytes)
+FCBDAT  EQU  96        Beginning of data buffer (256 bytes)
+
+        LIST
+

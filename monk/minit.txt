@@ -1,0 +1,66 @@
+*************************
+* machine specific init *
+*************************
+*
+* Initialise RMS.
+minit move.l #rms,a0
+*
+* Initialise screen to text.
+clt      bsr     cleart
+*
+* Initialise floppy disc controller.
+ move.b #$ff,rtrk
+ move.b #$ff,wtrk
+ move.w #$ffff,wrtrk
+ move.w #$ffff,wwtrk
+*         move.b  $0,fdc
+*
+* Initialise acia.
+*         move.l  #acia,a0      Initailise acia. (1200 baud)
+*         move.b  #$0,com0(a0) flush ACIA (USB) buffers
+*
+* Initialise rtc
+        lea.l time_st,a0
+        jsr getrtc
+*
+* Initialise system pia.
+*
+* Initialise buss watchdog to 50ms.
+*         move.b  #$b3,$ff121
+*         move.b  #$00,$ff127
+*         move.b  #$30,$ff129
+*         move.b  #$85,$ff12b
+*
+* Initialise SASI pia.
+*         lea.l   pia1,a0
+*         move.b  #$1c,(a0)
+*         moveq   #0,d0
+*         move.b  d0,$02(a0)
+*         move.b  d0,$04(a0)
+*         move.b  d0,$08(a0)
+*         move.b  d0,$20(a0)
+*         move.b  #$ff,$10(a0)
+*         move.b  #$ff,$18(a0)
+*         move.b  #$90,$08(a0)
+*         move.b  #$a0,$0c(a0)
+*
+* Seed random number generator.
+         move.w  #$300,d0
+         bsr     random
+*
+* Initialse sysreg and set initial input and output ports.
+         move.b  $FF111,d0 SYSREG is now porta of PAI0
+         btst  #init_ip,d0
+         bne.s   is1
+         move.b  #0,iport
+         bra.s   is2
+is1      move.b  #4,iport 4 bytes per jump table entry
+is2      btst  #init_op,d0
+         bne.s   is3
+         move.b  #0,oport
+         bra.s   is4
+is3      move.b  #4,oport
+is4      btst  #a_boot,d0
+*         bnq     boot
+         rts
+*

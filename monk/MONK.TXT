@@ -1,0 +1,289 @@
+*
+ include equates.txt
+*
+ PAGE
+ TTL MON_K    68k system services and debug routines
+ LIST
+**************************
+**************************  
+** MONK   Ver 5.1       **  
+** D.A.Rumball   Jun 23 **  
+**************************  
+**************************
+*
+******************************************
+* This program is the core section of a  *
+* general 68000 system monitor. It can   *
+* be configured to a particular system   *
+* by linking to other modules :-         *
+*                                        *
+*  OSSUBS......Contains the o/s          *
+*              interface.                *
+*  MINIT.......Contains the power on     *
+*              and reset code.           *
+*  EXCEPT......Contains the 68k          *
+*              exception code.           *
+*  CONSOLE.....Contains the console      *
+*              driver code.              *
+*  CHARS.......Font definitions.         *
+*  GRAPHICS....Contains any system       *
+*              code.                     *
+*  DISK........Contains the disk driver  *
+*              code.                     *
+*  SUBS........Contains the code for any *
+*              extra system subroutines. *
+*  COMMANDS....Contains the command set. *
+*  BOOT........Contains the boot routine.*
+******************************************
+*
+*
+ PAGE
+ include scratch.txt
+*
+
+ ORG prom
+*
+*************************************************
+* Exception jump table & subroutine jump table. *
+*************************************************
+*  Mapped to $0 after reset.
+         dc.l    s_stack      Monitor stack.
+         dc.l    mcold        Monitor cold start.
+         dc.l    b_excpt      Bus error.
+         dc.l    a_excpt      Address error.
+         dc.l    i_excpt      Illegal instruction.
+         dc.l    d_excpt      Divide by zero.
+         dc.l    c_excpt      CHK exception.
+         dc.l    o_excpt      TRAPV exception.
+         dc.l    p_excpt      Privilege exception.
+         dc.l    t_excpt      Trace exception.
+         dc.l    x_excpt      L1010 emulation (illegal instruction).
+         dc.l    y_excpt      L1111 emulation (illegal instruction).
+         dc.l    $ffffffff
+         dc.l    $ffffffff
+         dc.l    $ffffffff
+         dc.l    s_excpt      Uninitialised interrupt.
+         dc.l    $ffffffff
+         dc.l    $ffffffff
+         dc.l    $ffffffff
+         dc.l    $ffffffff
+         dc.l    $ffffffff
+         dc.l    $ffffffff
+         dc.l    $ffffffff
+         dc.l    $ffffffff
+         dc.l    s_excpt      Spurious interrupt.
+*
+* Autovectored interrupts.
+*
+         dc.l    int          Interrupt level 1
+         dc.l    int          Interrupt level 2
+         dc.l    int          Interrupt level 3
+         dc.l    int          Interrupt level 4
+         dc.l    int          Interrupt level 5
+         dc.l    int          Interrupt level 6
+         dc.l    int7         Interrupt level 7
+*
+* Trap vectors
+*
+         dc.l   trp           Unexpected trap.
+         dc.l   trp
+         dc.l   trp
+         dc.l   trp
+         dc.l   trp
+         dc.l   trp
+         dc.l   trp
+         dc.l   trp
+         dc.l   trp
+         dc.l   trp
+         dc.l   trp
+         dc.l   trp
+         dc.l   trp
+         dc.l   trp
+         dc.l   trp14         Breakpoints.
+         dc.l   trp15         User requests.
+*
+*
+* Monitor jump table Copied to j_table on reset.
+* jump table is a seies of 6 byte entries
+* Class 1 routines.
+jmp_tab  jmp   mcold        Monitor cold start.
+         jmp   mwarm        Monitor warm start.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+* class 2 routines.
+         jmp   status       Test for recieved character.
+         jmp   inch1        Input character, no echo.
+         jmp   inch         Input character with echo.
+         jmp   outch        Output character.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+* Class 3 routines.
+         jmp   pdata1       Print a string.
+         jmp   pcrlf        Print a new line.
+         jmp   pstring      Print crlf + string.
+         jmp   outs         Print a space.
+         jmp   outns        Print multiple spaces.
+         jmp   locase       Convert character to lower ca.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+* Class 4 routines.
+         jmp   inhex        Input multi digit hex number.
+         jmp   prompt       Print a string plus input hex
+         jmp   outh           "    " one     "    "    "
+         jmp   out2h          "    " two     "    "    "
+         jmp   out4h          "    " four    "    "    "
+         jmp   out8h        Print an eight digit hex numb.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+* Class 5 routines.
+         jmp   delay        Delay routine.
+         jmp   beep         Beep buzzer.
+         jmp   random       Random number generator.
+         jmp   getrtc       Get data from real time clock
+         jmp   putrtc       Put data to real time clock.
+         jmp   in           Write data to security ram.
+         jmp   out          Read data from b/b ram.
+         jmp   dummy        Spare slot.
+* Class 6 routines.
+         jmp   select       Select drive.
+j_disk   jmp   restore      Recalibrate drive.
+         jmp   seek         Seek to cylinder.
+         jmp   read         Read sector.
+         jmp   write        Write sector.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+* Class 7 routines.
+         jmp   dvs          Define virtual screen.
+         jmp   sync         Wait for vertical blanking.
+         jmp   load_lut     Load look up tables.
+         jmp   text         Display text screen.
+         jmp   hi_graph     Display 650 x 500 mono.
+         jmp   dummy        Display 650 x 500 4 colour.
+         jmp   lo_graph     Display 320 x 250 16 colour.
+         jmp   clearg       Clear graphics space.
+         jmp   border       Define boarder colour.
+         jmp   setpen       Define `pen' style.
+         jmp   move         Move drawing point.
+         jmp   query        Return pel value.
+         jmp   point        Plot point.
+         jmp   line         Plot line.
+         jmp   rect         Plot rectangle.
+         jmp   circle       Plot circle.
+         jmp   patdef       Define fill pattern.
+         jmp   fill         Plot filled rectangle.
+         jmp   flood        Arbituary area fill.
+         jmp   scroll       Scroll through virtual screen.
+         jmp   pan          Pan across virtual screen.
+         jmp   locate       Centre displayed area on cursor.
+         jmp   mouse        Return mouse status.
+         jmp   wordblt      Move block (word bounds) with logical mods.
+         jmp   bitblt       Move block (bit bounds) with logical mods.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+         jmp   dummy        Spare slot.
+*
+copyrght dc.b    'v5.1 c 1986-2023'
+         dc.b    'D.Rumball AVED'
+         dc.b    $51          Monk version number.
+         dc.b    3            OP/SYS code (SK*DOS)
+*
+**************************************
+* Start of monitor. Entered on reset *
+**************************************
+*
+hdr      dc.b    $0c,'** MONK 68000 monitor  Ver 5.1   D.A.Rumball 2023 **',0
+prmpt    dc.b    '==>',0
+*
+* monitor cold start
+mcold    move.w  #$2700,sr    Disable interrupts, supervisor.
+*
+         move.l  #$0,a0        Move exception vectors to low ram (48 vectors)
+         move.l  #prom,a1
+         move.w  #47,d0
+cloop    move.l  (a1)+,(a0)+
+         dbf     d0,cloop
+*
+         move.l  #j_table,a0   Move jump table to ram.
+         move.l  #jmp_tab,a1
+         move.w  #127,d0       
+jloop    move.l  (a1)+,(a0)+
+         dbf   d0,jloop
+*
+         cmp.b   #$aa,p_down  Check scratch and clear if not valid.
+         beq.s   ram_ok
+         move.l  #ram,a0
+cloop1   clr.l   (a0)+        Clear out scratch storage space.
+         cmp.l   #ram+512,a0
+         bne.s   cloop1
+         move.b  #$aa,p_down
+*
+ram_ok   move.l  #u_stack,usptr Set up user stack pointer.
+*
+         bsr     minit      System dependent init code.
+*
+         lea     hdr(pc),a0 print  initial header
+         bsr     pstring
+*
+* monitor warm start
+mwarm    lea     prmpt(pc),a0     
+         bsr     pstring
+*
+         bsr     inch
+         bsr     locase
+         asl.l   #8,d0
+         move.l  d0,d1
+         bsr     inch
+         bsr     locase
+         add.b   d0,d1
+*
+parse    lea     comtab(pc),a0
+comloop  cmp.w   #$ffff,(a0)
+         beq.s   notthere
+         cmp.w   (a0)+,d1
+         beq.s   found
+         add.l    #4,a0
+         bra.s   comloop
+found    move.l  (a0),a1
+         jmp     (a1)
+*
+nts      dc.b    $d,'Unknown command!, (?? for help)',7,0
+notthere lea     nts(pc),a0
+         bsr     pdata1
+         bra.s   mwarm
+*
+*
+* Dummy routine.
+dummy    rts     Dummy routine to do nothing.
+*
+ include subs.txt
+*
+ include minit.txt
+*
+ include graphics.txt
+*
+ include except.txt
+*
+ include disk.txt
+*
+ include console.txt
+*
+ include commands.txt
+*
+ include ossubs.txt
+*
+ include boot.txt
+*
+ include chars.txt
+*
+ end
